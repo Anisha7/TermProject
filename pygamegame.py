@@ -1,13 +1,46 @@
-import sys
-print(sys.version)
+'''
+Anisha Jain
+
+pygamegame.py
+barebones framework created by Lukas Peraza
+https://github.com/LBPeraza/Pygame-Asteroids
+
+- you should remove the print calls from any function you aren't using
+- you might want to move the pygame.display.flip() to your redrawAll function,
+    in case you don't need to update the entire display every frame (then you
+    should use pygame.display.update(Rect) instead)
+'''
 import pygame
 
 
 class PygameGame(object):
 
-    """
-    a bunch of stuff is left out of this file, but you can check it out in the Github repo
-    """
+    #def init(self):
+        #pass
+
+    def mousePressed(self, x, y):
+        pass
+
+    def mouseReleased(self, x, y):
+        pass
+
+    def mouseMotion(self, x, y):
+        pass
+
+    def mouseDrag(self, x, y):
+        pass
+
+    def keyPressed(self, keyCode, modifier):
+        pass
+
+    def keyReleased(self, keyCode, modifier):
+        pass
+
+    def timerFired(self, dt):
+        pass
+
+    def redrawAll(self, screen):
+        pass
 
     def isKeyPressed(self, key):
         ''' return whether a specific key is being held '''
@@ -18,6 +51,7 @@ class PygameGame(object):
         self.height = height
         self.fps = fps
         self.title = title
+        self.bgColor = (255, 255, 255)
         pygame.init()
 
     def run(self):
@@ -55,8 +89,17 @@ class PygameGame(object):
                     self.keyReleased(event.key, event.mod)
                 elif event.type == pygame.QUIT:
                     playing = False
-            screen.fill((255, 255, 255))
+
+            screen.fill(self.bgColor)
             self.redrawAll(screen)
             pygame.display.flip()
 
         pygame.quit()
+
+
+def main():
+    game = PygameGame()
+    game.run()
+
+if __name__ == '__main__':
+    main()
