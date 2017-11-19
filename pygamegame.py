@@ -49,9 +49,11 @@ class PygameGame(object):
     def __init__(self, width=600, height=400, fps=50, title="112 Pygame Game"):
         self.width = width
         self.height = height
+
         self.fps = fps
         self.title = title
         self.bgColor = (255, 255, 255)
+
         pygame.init()
 
     def run(self):
@@ -71,22 +73,29 @@ class PygameGame(object):
             time = clock.tick(self.fps)
             self.timerFired(time)
             for event in pygame.event.get():
+
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     self.mousePressed(*(event.pos))
+
                 elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                     self.mouseReleased(*(event.pos))
+
                 elif (event.type == pygame.MOUSEMOTION and
                       event.buttons == (0, 0, 0)):
                     self.mouseMotion(*(event.pos))
+
                 elif (event.type == pygame.MOUSEMOTION and
                       event.buttons[0] == 1):
                     self.mouseDrag(*(event.pos))
+
                 elif event.type == pygame.KEYDOWN:
                     self._keys[event.key] = True
                     self.keyPressed(event.key, event.mod)
+
                 elif event.type == pygame.KEYUP:
                     self._keys[event.key] = False
                     self.keyReleased(event.key, event.mod)
+
                 elif event.type == pygame.QUIT:
                     playing = False
 
