@@ -41,3 +41,6 @@ class GameObject(pygame.sprite.Sprite):
         elif self.rect.bottom < 0:
             self.y += screenHeight + self.height
         self.updateRect()
+
+
+        

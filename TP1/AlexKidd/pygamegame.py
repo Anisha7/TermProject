@@ -15,8 +15,8 @@ import pygame
 
 class PygameGame(object):
 
-    #def init(self):
-        #pass
+    def init(self):
+        pass
 
     def mousePressed(self, x, y):
         pass
