@@ -1,30 +1,38 @@
 # enemies set up
+import pygame
 import random
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super(Enemy, self).__init__()
-
-
-        self.surf = pygame.Surface((75, 25))
-        self.surf.fill((200, 165, 205))
-        self.x = x//6 - x//2
-        self.y = y//2
-        self.rect = self.surf.get_rect()
+        # x,y pos for enemy
+        # initialize in game.py when creating enemy
+        #print(pos)
+        self.x = x
+        self.y = y
         self.count = 0
+        self.dist = 2
 
-        self.enemies = pygame.sprite.Group()
+        self.surf = pygame.image.load('modules/enemyCar.png')
+        self.rect = self.surf.get_rect
+        #self.image = pygame.image.load('modules/enemyCar.png')
+        #self.rect = self.image.get_rect
 
 
     def update(self):
         
-        dist = 2
-        if self.count == 5:
-            dist *= -1
-            count = 0
+        #dist = 2
+        if self.count == 50:
+            self.dist *= -1
+            self.count = 0
        
-        self.x += dist
+        self.x += self.dist
         self.count += 1
+
+        if self.dist < 0:
+            self.surf = pygame.image.load('modules/enemyCarLeft.png')
+        else:
+            self.surf = pygame.image.load('modules/enemyCar.png')
 
 
     def draw(self, surface):

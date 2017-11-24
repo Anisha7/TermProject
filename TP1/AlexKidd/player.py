@@ -13,7 +13,7 @@ class Player(pygame.sprite.Sprite):
         rect = self.surf.get_rect()
         #print("recth: ",rect.h)
         #print(Environment.groundh)
-        self.x = x//2
+        self.x = x//3
         self.y = y - 50 - rect.h//2
         self.rect = self.surf.get_rect()
         self.lives = 3
@@ -52,6 +52,7 @@ class Punches(pygame.sprite.Sprite):
 
         self.surf = pygame.image.load('modules/boomerang.png')
         rect = self.surf.get_rect
+        #self.image = pygame.image.load('modules/boomerang.png')
 
         self.x = x
         self.y = y
