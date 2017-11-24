@@ -59,6 +59,8 @@ class Game(PygameGame):
         self.castle = Castle(200, self.player.y - 215)
         self.inMiniGame = False
 
+        self.levelOver = False
+
 
     def update(self, pressed_keys, keyCode, modifier):
 
@@ -90,7 +92,7 @@ class Game(PygameGame):
         # get inside castle
         if abs(self.castle.x - self.player.x) <= 200:
             if pressed_keys[K_RETURN]:
-                #self.castle.inGame(self.mainMap)
+                self.castle.inGame(self.mainMap)
                 self.inMiniGame = True
             if pressed_keys[K_ESCAPE]:
                 #self.castle.exitCastle()
@@ -159,14 +161,29 @@ class Game(PygameGame):
             screen.blit(textsurf,(self.windowW - 10, 20))
 
             # lives on screen
-            lives = "Lives: %d"%(self.player.lives)
+            lives = "Lives: "
             textsurf = myfont.render(lives, False, (0, 0, 0))
             screen.blit(textsurf,(100, 20))
 
-            
+            n = 0
+            life = pygame.image.load('modules/life.png')
+            life = pygame.transform.smoothscale(life, (20,20))
+            for i in range(self.player.lives):
+                n += 30
+                screen.blit(life, (140 + n, 20))
+
+            # draw finish line flag
+            flag = pygame.image.load('modules/finishFlag.png')
+            self.mainMap.blit(flag, (self.mapWidth - 350, self.windowH//4))
+
+            # check if player finished level1
+            if self.player.x >= self.mapWidth - 350:
+                self.levelOver = True
 
             # player
             self.player.draw(screen)
+            #self.player.draw(self.mainMap)
+
             if self.punch == True:
                 self.punches.draw(screen)
                 #self.punch = False
@@ -180,6 +197,8 @@ class Game(PygameGame):
 
         if self.inMiniGame == True:
             self.castle.inGame(self.mainMap)
+
+        #self.castle.inGame(self.mainMap)
 
         pygame.display.flip()
 

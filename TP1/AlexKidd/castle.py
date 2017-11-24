@@ -30,9 +30,8 @@ class Castle(pygame.sprite.Sprite):
 
     def inGame(self, surface):
         print("YO")
+        
         self.rockPaperScissor.draw(surface)
-
-        pass
 
     def exitCastle(self):
         print("HO")
