@@ -37,6 +37,9 @@ class Player(pygame.sprite.Sprite):
                 self.surf = pygame.image.load('modules/AKplayer.png')
                 self.x += dist
 
+        # self.lives -= 1 if collide with enemy
+        
+
     def draw(self, surface):
         surface.blit(self.surf, (self.x, self.y))
 

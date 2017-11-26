@@ -22,14 +22,14 @@ class Castle(pygame.sprite.Sprite):
         
 
     def update(self, pressed_keys):
-        pass
+        self.rockPaperScissor.update(pressed_keys)
 
 
     def draw(self, surface):
         surface.blit(self.surf, (self.x, self.y))
 
     def inGame(self, surface):
-        print("YO")
+        #print("YO")
         
         self.rockPaperScissor.draw(surface)
 

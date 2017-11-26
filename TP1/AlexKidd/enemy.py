@@ -34,6 +34,8 @@ class Enemy(pygame.sprite.Sprite):
         else:
             self.surf = pygame.image.load('modules/enemyCar.png')
 
+        # self.kill if collide with player's boomerang
+
 
     def draw(self, surface):
         surface.blit(self.surf, (self.x, self.y))

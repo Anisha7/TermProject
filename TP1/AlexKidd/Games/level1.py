@@ -5,6 +5,7 @@ import pygame
 from pygamegame import *
 from player import *
 import random
+from game import Game
 
 class RockPaperScissor(PygameGame):
 
@@ -14,18 +15,21 @@ class RockPaperScissor(PygameGame):
 
         self.surf = pygame.image.load('modules/Stage.png')
         self.rect = self.surf.get_rect
-        #self.surf = pygame.transform.smoothscale(self.surf, (400,400))
+        self.surf = pygame.transform.smoothscale(self.surf, (800,600))
 
         # Game setup
 
         self.paper = pygame.image.load('modules/Game1/paper.png')
+        self.paper = pygame.transform.smoothscale(self.paper, (100,100))
         self.rock = pygame.image.load('modules/Game1/rock.png')
+        self.rock = pygame.transform.smoothscale(self.rock, (90,90))
         self.scissors = pygame.image.load('modules/Game1/scissors.png')
+        self.scissors = pygame.transform.smoothscale(self.scissors, (80,100))
         self.moves = [self.paper, self.rock, self.scissors]
         self.i = 0
         self.playerMove = self.moves[0]
         n = random.randint(0,2)
-        self.enemyMove = self.moves[n]
+        self.enemyMove = self.moves[0]
         
         # count wins
         self.enemyWins = 0
@@ -38,6 +42,8 @@ class RockPaperScissor(PygameGame):
 
         self.prizes = [50,100,200,300,500]
 
+        self.enemyTurn = False
+
 
     def update(self, pressed_keys):
 
@@ -49,6 +55,7 @@ class RockPaperScissor(PygameGame):
         # if game is being played, get win counts
         if self.playing == True:
             if pressed_keys[K_RIGHT]:
+                self.enemyTurn = False
                 self.i += 1
                 if self.i > 2:
                     self.i = 0
@@ -56,15 +63,19 @@ class RockPaperScissor(PygameGame):
                 self.endText = None
                 
             if pressed_keys[K_LEFT]:
+                self.enemyTurn = False
                 self.i -= 1
                 if self.i < 0:
                     self.i = 2
 
                 self.endText = None
-
+            #print(self.i)
             self.playerMove = self.moves[self.i]
 
             if pressed_keys[K_RETURN]:
+                n = random.randint(0,2)
+                self.enemyMove = self.moves[n]
+                self.enemyTurn = True
                 # show enemy move
                 # show who won
                 if self.enemyMove == self.paper:
@@ -103,8 +114,10 @@ class RockPaperScissor(PygameGame):
 
         if self.playing == True:
             surface.blit(self.surf, (0, 0))
-            surface.blit(self.playerMove, (self.width//4, self.height//2))
-            surface.blit(self.enemyMove, (self.width - self.width//4, self.height//2))
+            surface.blit(self.playerMove, (self.width//4, self.height//2 - 100))
+            if self.enemyTurn == True:
+                #print("yes")
+                surface.blit(self.enemyMove, (self.width - self.width//4 + 100, self.height//2 - 100))
 
             # scores
             
@@ -112,7 +125,7 @@ class RockPaperScissor(PygameGame):
             textsurf = myfont.render(playerScore, False, (0, 0, 0))
             surface.blit(textsurf,(self.width//4, 40))
 
-            enemyScore = "Your Score: %d"%(self.enemyWins)
+            enemyScore = "Enemy Score: %d"%(self.enemyWins)
             textsurf = myfont.render(enemyScore, False, (0, 0, 0))
             surface.blit(textsurf,(self.width - self.width//4, 40))
 
@@ -123,13 +136,14 @@ class RockPaperScissor(PygameGame):
 
         # end game screen, who won, what reward player gets
         if self.playing == False:
-            self.endsurf = pygame.draw.rect(self.mainMap, white, (0, 0, self.width, self.height))
-            surface.blit(self.endsurf, (0, 0))
+            # change font colors after testing code
+            self.endsurf = pygame.draw.rect(surface, (255, 255, 255), (0, 0, self.width, self.height))
+            #surface.blit(self.endsurf, (0, 0))
             # who won
             if self.playerWins > self.enemyWins:
                 self.endText = "You Win!"
                 textsurf = myfont.render(self.endText, False, (0, 0, 0))
-                surface.blit(textsurf,(self.width//2, self.height//4), 40)
+                surface.blit(textsurf, (self.width//2, self.height//4))
 
                 # what did player win
                 n = random.randint(0, 4)
@@ -137,23 +151,27 @@ class RockPaperScissor(PygameGame):
 
                 text = "You won %d coins!"%(prize)
                 textsurf = myfont.render(text, False, (0, 0, 0))
-                surface.blit(textsurf,(self.width//2, self.height//2), 40)
+                surface.blit(textsurf,(self.width//2, self.height//2))
 
-                Player.score += prize
+                #Player.score += prize
+                #Game.updateScore(prize)
                 score = "Score: %d"%(self.player.score)
                 textsurf = myfont.render(score, False, (0, 0, 0))
                 screen.blit(textsurf,(self.windowW - 10, 20))
                 # put prize image here
 
-                exitInst = "Press ESC to exit Castle"
-                textsurf = myfont.render(exitInst, False, (0, 0, 0))
-                surface.blit(textsurf,(self.width//2, self.height - self.height//4), 40)
                 # screen when player wins
 
                 
             if self.enemyWins > self.playerWins:
                 self.endText = "You Lost!"
+                textsurf = myfont.render(self.endText, False, (0, 0, 0))
+                print("I'm here")
+                surface.blit(textsurf,(self.width//2, self.height//2))
             
+            exitInst = "Press ESC to exit Castle"
+            textsurf = myfont.render(exitInst, False, (0, 0, 0))
+            surface.blit(textsurf,(self.width//2, self.height - self.height//4), 40)
 
 
         #pygame.display.flip()

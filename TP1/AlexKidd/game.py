@@ -6,13 +6,14 @@ from pygamegame import *
 #from env import *
 from player import *
 from enemy import *
-from castle import *
-
+from castle import Castle
+print(Castle(2,4).x)
 import random
 
 pygame.font.init()
 
 class Game(PygameGame):
+
     def init(self):
         super().__init__()
 
@@ -54,7 +55,7 @@ class Game(PygameGame):
             enemyList += [Enemy(num, self.player.y)]
 
         self.enemyList = enemyList
-
+        #print(Castle.m)
         # castle
         self.castle = Castle(200, self.player.y - 215)
         self.inMiniGame = False
@@ -103,8 +104,10 @@ class Game(PygameGame):
         pressed_keys = pygame.key.get_pressed()
         
         Game.update(self,pressed_keys, keyCode, modifier)
-
-        self.player.update(pressed_keys)
+        if self.inMiniGame == False:
+            self.player.update(pressed_keys)
+        if self.inMiniGame == True:
+            self.castle.update(pressed_keys)
 
     def timerFired(self, dt):
         #self.enemy.update()
@@ -122,7 +125,43 @@ class Game(PygameGame):
             # if pygame.sprite.collide_rect(enemy, self.punches):
             #     enemyList.remove(enemy)
             #pass
+
+    # redrawAll helpers
+    def levelOneDraw(self, screen):
+
+        # draw castle
+        self.castle.draw(self.mainMap)
+
+        # draw trees
+
+        # draw ground
+        #rect1 = pygame.draw.rect(self.mainMap, white, (0, self.windowH - 25, 1700, self.windowH))
+        surf = pygame.image.load(self.groundImage)
+        surf = pygame.transform.smoothscale(surf, (1700, self.windowH//4))
+        #pygame.Surface.blit(self.mainMap, surf, rect1)
+        screen.blit(surf, (0, self.windowH))
+
+        # draw finish line flag
+        flag = pygame.image.load('modules/finishFlag.png')
+        self.mainMap.blit(flag, (self.mapWidth - 350, self.windowH//4))
+
+        # check if player finished level1
+        if self.player.x >= self.mapWidth - 350:
+            self.levelOver = True
+            self.player.level += 1
         
+        # enemies
+
+        #self.enemies.draw(screen)
+        for enemy in self.enemyList:
+            enemy.draw(self.mainMap)
+
+        # coins
+
+        # treasure chests 
+
+    def midLevelScreen(self, screen):
+        pass
 
     def redrawAll(self, screen):
 
@@ -137,16 +176,6 @@ class Game(PygameGame):
             # update scrolling on screen
             screen.blit(self.mainMap, (self.mapX, 0, self.mapX + self.windowW, self.windowH))
             self.mainMap.fill(self.blue)
-
-            # draw castle
-            self.castle.draw(self.mainMap)
-
-            # draw ground
-            #rect1 = pygame.draw.rect(self.mainMap, white, (0, self.windowH - 25, 1700, self.windowH))
-            surf = pygame.image.load(self.groundImage)
-            surf = pygame.transform.smoothscale(surf, (1700, self.windowH//4))
-            #pygame.Surface.blit(self.mainMap, surf, rect1)
-            screen.blit(surf, (0, self.windowH))
 
             # draw circles to test scrolling
             circle1 = pygame.draw.circle(self.mainMap, white, (1000, 300), 20)
@@ -172,31 +201,30 @@ class Game(PygameGame):
                 n += 30
                 screen.blit(life, (140 + n, 20))
 
-            # draw finish line flag
-            flag = pygame.image.load('modules/finishFlag.png')
-            self.mainMap.blit(flag, (self.mapWidth - 350, self.windowH//4))
+            # draw level one game screen
+            if self.player.level == 1:
+                Game.levelOneDraw(self, screen)
 
-            # check if player finished level1
-            if self.player.x >= self.mapWidth - 350:
-                self.levelOver = True
-
-            # player
+            # player 
             self.player.draw(screen)
-            #self.player.draw(self.mainMap)
-
+            
+            # drawing player's punch attack
             if self.punch == True:
                 self.punches.draw(screen)
-                #self.punch = False
-            #self.punches.draw(screen)
-
-            # level 1 enemies
-
-            #self.enemies.draw(screen)
-            for enemy in self.enemyList:
-                enemy.draw(self.mainMap)
+                
 
         if self.inMiniGame == True:
-            self.castle.inGame(self.mainMap)
+            if self.player.level ==1:
+                self.castle.inGame(screen)
+                # saving outside castle position
+                x = self.player.x
+                y = self.player.y
+                print(x,y) # 170, 302 ideal pos inside castle
+                self.player.x = 170
+                self.player.y = 302
+                self.player.draw(screen)
+                self.player.x = x
+                self.player.y = y
 
         #self.castle.inGame(self.mainMap)
 
