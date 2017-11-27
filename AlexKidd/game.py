@@ -7,7 +7,6 @@ from pygamegame import *
 from player import *
 from enemy import *
 from castle import Castle
-print(Castle(2,4).x)
 import random
 
 pygame.font.init()
@@ -57,8 +56,10 @@ class Game(PygameGame):
         self.enemyList = enemyList
         #print(Castle.m)
         # castle
-        self.castle = Castle(200, self.player.y - 215)
+        self.castle = Castle(200, self.player.y - 215, self.player.score, 1)
         self.inMiniGame = False
+        self.castle2 = Castle(900, self.player.y - 215, self.player.score, 1.2)
+        #self.inMiniGame2 = False
 
         self.levelOver = False
 
@@ -91,13 +92,15 @@ class Game(PygameGame):
             self.punches = Punches(self.player.x, self.player.y + 50)
 
         # get inside castle
-        if abs(self.castle.x - self.player.x) <= 200:
+        if (abs(self.castle.x - self.player.x) <= 200) or (abs(self.castle2.x - self.player.x) <= 200):
             if pressed_keys[K_RETURN]:
                 self.castle.inGame(self.mainMap)
                 self.inMiniGame = True
             if pressed_keys[K_ESCAPE]:
                 #self.castle.exitCastle()
                 self.inMiniGame = False
+                self.castle.exitCastle()
+
 
 
     def keyPressed(self, keyCode, modifier):
@@ -131,6 +134,7 @@ class Game(PygameGame):
 
         # draw castle
         self.castle.draw(self.mainMap)
+        self.castle2.draw(self.mainMap)
 
         # draw trees
 
@@ -226,6 +230,7 @@ class Game(PygameGame):
                 self.player.x = x
                 self.player.y = y
 
+            self.player.score = self.castle.score
         #self.castle.inGame(self.mainMap)
 
         pygame.display.flip()

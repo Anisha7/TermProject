@@ -5,13 +5,15 @@ import pygame
 from pygamegame import *
 from player import *
 import random
-from game import Game
+#from game import Game
 
 class RockPaperScissor(PygameGame):
 
-    def __init__(self):
+    def __init__(self, score):
         
         super().__init__()
+
+        self.score = score
 
         self.surf = pygame.image.load('modules/Stage.png')
         self.rect = self.surf.get_rect
@@ -41,6 +43,9 @@ class RockPaperScissor(PygameGame):
         self.playing = True
 
         self.prizes = [50,100,200,300,500]
+        self.n = random.randint(0, 4)
+        self.prize = 0
+        self.count = 0
 
         self.enemyTurn = False
 
@@ -146,20 +151,26 @@ class RockPaperScissor(PygameGame):
                 surface.blit(textsurf, (self.width//2, self.height//4))
 
                 # what did player win
-                n = random.randint(0, 4)
-                prize = self.prizes[n]
+                
+                # prize initialization
+                self.prize = self.prizes[self.n]
+                
 
-                text = "You won %d coins!"%(prize)
+                text = "You won %d coins!"%(self.prize)
                 textsurf = myfont.render(text, False, (0, 0, 0))
                 surface.blit(textsurf,(self.width//2, self.height//2))
 
-                #Player.score += prize
+                score = 0
+                score += self.prize
                 #Game.updateScore(prize)
-                score = "Score: %d"%(self.player.score)
+                score = "Score: %d"%(score)
                 textsurf = myfont.render(score, False, (0, 0, 0))
-                screen.blit(textsurf,(self.windowW - 10, 20))
+                surface.blit(textsurf,(self.width - 10, 20))
                 # put prize image here
 
+                if self.count < 1:
+                    self.score += self.prize
+                    self.count += 1
                 # screen when player wins
 
                 
@@ -171,7 +182,8 @@ class RockPaperScissor(PygameGame):
             
             exitInst = "Press ESC to exit Castle"
             textsurf = myfont.render(exitInst, False, (0, 0, 0))
-            surface.blit(textsurf,(self.width//2, self.height - self.height//4), 40)
+            surface.blit(textsurf,(self.width//2, self.height - self.height//4))
+            #self.endsurf.blit(textsurf,(self.width//2, self.height - self.height//4), 40)
 
 
         #pygame.display.flip()
