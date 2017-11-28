@@ -45,13 +45,19 @@ class Game(PygameGame):
         #self.punches = pygame.sprite.Group()
 
         # enemies
+        # test pygame sprite groups
+        self.enemies = pygame.sprite.Group()
+
         x = random.randint(2, 5)
         enemyList = []
         for i in range(x):
 
-            num = random.randint(self.windowW, self.mapWidth - 200)
-            print(num)
+            num = random.randint(self.windowW, self.mapWidth - 600)
+            #print(num)
             enemyList += [Enemy(num, self.player.y)]
+
+            self.enemies.add(Enemy(num, self.player.y))
+
 
         self.enemyList = enemyList
         #print(Castle.m)
@@ -92,14 +98,27 @@ class Game(PygameGame):
             self.punches = Punches(self.player.x, self.player.y + 50)
 
         # get inside castle
-        if (abs(self.castle.x - self.player.x) <= 200) or (abs(self.castle2.x - self.player.x) <= 200):
+        if (abs(self.castle.x - self.player.x) <= 200):
             if pressed_keys[K_RETURN]:
                 self.castle.inGame(self.mainMap)
-                self.inMiniGame = True
+                self.inMiniGame1 = True
             if pressed_keys[K_ESCAPE]:
                 #self.castle.exitCastle()
-                self.inMiniGame = False
+                self.inMiniGame1 = False
                 self.castle.exitCastle()
+
+        # not working because player is on a different screen. 
+        # use pygame collide
+        #print("this is the diff **** ", (abs(self.castle2.x - self.player.x)))
+        if (abs(self.castle2.x - self.player.x) <= 200):
+            if pressed_keys[K_RETURN]:
+                #print("in castle 2")
+                self.castle2.inGame(self.mainMap)
+                self.inMiniGame2 = True
+            if pressed_keys[K_ESCAPE]:
+                #self.castle.exitCastle()
+                self.inMiniGame2 = False
+                self.castle2.exitCastle()
 
 
 
@@ -107,7 +126,7 @@ class Game(PygameGame):
         pressed_keys = pygame.key.get_pressed()
         
         Game.update(self,pressed_keys, keyCode, modifier)
-        if self.inMiniGame == False:
+        if self.inMiniGame1 == False:
             self.player.update(pressed_keys)
         if self.inMiniGame == True:
             self.castle.update(pressed_keys)
@@ -119,8 +138,21 @@ class Game(PygameGame):
             self.punch = False
             self.punches = Punches(self.player.x, self.player.y + 50)
 
+        #if pygame.sprite.collide_rect(self.player, self.castle):
+            #print("castle collide **")
+        self.enemies.update()
+
+        if self.player.rect.colliderect(self.castle.rect):
+            print("castle here")
+        if pygame.sprite.spritecollide(self.player, self.enemies, False):
+            print("ENEMY PLAYER COLLISION")
         for enemy in self.enemyList:
+
             enemy.update()
+            #if pygame.sprite.spritecollide(self.player, self.enemies, False):
+            #if pygame.sprite.collide_rect(self.player.rect, enemy.rect):
+                #self.player.lives -= 1
+                #print("enemy-player collide **")
             #print(enemy.x, self.punches.x)
             #if enemy.x == self.punches.x:
                 #enemyList.remove(enemy)
@@ -156,7 +188,7 @@ class Game(PygameGame):
         
         # enemies
 
-        #self.enemies.draw(screen)
+        self.enemies.draw(self.mainMap)
         for enemy in self.enemyList:
             enemy.draw(self.mainMap)
 
@@ -169,8 +201,6 @@ class Game(PygameGame):
 
     def redrawAll(self, screen):
 
-        x = 0
-        y = 0
         red = (255, 0, 0)
         blue = (70, 165, 224)
         purple = (255, 0, 255)
@@ -223,7 +253,7 @@ class Game(PygameGame):
                 # saving outside castle position
                 x = self.player.x
                 y = self.player.y
-                print(x,y) # 170, 302 ideal pos inside castle
+                #print(x,y) # 170, 302 ideal pos inside castle
                 self.player.x = 170
                 self.player.y = 302
                 self.player.draw(screen)

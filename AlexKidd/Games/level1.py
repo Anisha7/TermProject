@@ -14,10 +14,10 @@ class RockPaperScissor(PygameGame):
         super().__init__()
 
         self.score = score
-
+        print(self.width)
         self.surf = pygame.image.load('modules/Stage.png')
         self.rect = self.surf.get_rect
-        self.surf = pygame.transform.smoothscale(self.surf, (800,600))
+        self.surf = pygame.transform.smoothscale(self.surf, (950,600))
 
         # Game setup
 

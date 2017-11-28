@@ -6,22 +6,27 @@ from environment import *
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
         super(Player, self).__init__()
         #self.surf = pygame.Surface((75, 25))
         #self.surf.fill((200, 155, 255))
         self.surf = pygame.image.load('modules/AKplayer.png')
+        self.image = self.surf
         rect = self.surf.get_rect()
+        self.rect = rect
         #print("recth: ",rect.h)
         #print(Environment.groundh)
         self.x = x//3
         self.y = y - 50 - rect.h//2
-        self.rect = self.surf.get_rect()
         self.lives = 3
         self.score = 0
         self.level = 1
 
+        # track player's direction
+        self.d = 1
+
     def update(self, pressed_keys):
-        dist = 15
+        dist = 25
 
         if pressed_keys[K_UP]:
             self.y -= dist
@@ -32,10 +37,12 @@ class Player(pygame.sprite.Sprite):
             if pressed_keys[K_LEFT]:
                 self.surf = pygame.image.load('modules/AKplayerLeft.png')
                 self.x -= dist
+                self.d = -1
         if self.x < 550:
             if pressed_keys[K_RIGHT]:
                 self.surf = pygame.image.load('modules/AKplayer.png')
                 self.x += dist
+                self.d = 1
 
         # self.lives -= 1 if collide with enemy
         
@@ -84,9 +91,3 @@ class Punches(pygame.sprite.Sprite):
 
         if self.x > windowW or self.x < 0:
             self.kill()
-
-    def checkCollision(self, enemyx, enemyy):
-        if self.x == enemyx and self.y == enemyy:
-            pass
-
-        pass

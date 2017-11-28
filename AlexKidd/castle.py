@@ -2,7 +2,7 @@
 import pygame
 from player import Player
 from Games.level1 import *
-from Games.level1-2 import *
+from Games.level1checkers import *
 # helpers for game setup
 
 class Castle(pygame.sprite.Sprite):
@@ -19,6 +19,7 @@ class Castle(pygame.sprite.Sprite):
         self.surf = pygame.transform.smoothscale(self.surf, (400,400))
 
         self.rockPaperScissor = RockPaperScissor(self.score)
+        self.checkers = Checkers()
 
         # Game setup
         
@@ -38,16 +39,15 @@ class Castle(pygame.sprite.Sprite):
             self.score = self.rockPaperScissor.score
 
         if self.game == 1.2:
-            pass
+            self.checkers.draw(surface)
 
 
     def inGame2(self, surface):
         pass
 
     def exitCastle(self):
-        print("HO")
         if self.game == 1:
             self.rockPaperScissor = RockPaperScissor(self.score)
-        if self.game == 1.2:
+        if self.game == 2:
             pass
         pass
