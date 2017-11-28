@@ -29,7 +29,7 @@ class Checkers(PygameGame):
         # grid
 
     def draw(self, surface):
-        self.surf = pygame.draw.rect(surface, (0,0,0), [0, 0, self.width, self.height]) # background surface
+        self.surf = pygame.draw.rect(surface, (0,0,0), [0, 0, 950, 600]) # background surface
         self.rect = self.surf.get_rect
         
         # create grid
