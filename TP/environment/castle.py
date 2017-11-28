@@ -28,14 +28,26 @@ class Castle(pygame.sprite.Sprite):
 
 
     def update(self, pressed_keys):
-        self.rockPaperScissor.update(pressed_keys)
+        print("I'm in castle update")
+        print('level: ', self.level)
+        print('game: ', self.game)
+
+        if self.level == 1:
+            if self.game == 1:
+                self.rockPaperScissor.update(pressed_keys)
+
+            if self.game == 2:
+                ("Update checkers")
+                self.checkers.update(pressed_keys)
 
     def draw(self, surface):
         surface.blit(self.surf, (self.x, self.y))
 
     def castleCollide(self, playerx):
 
-        if (abs(self.x - playerx) <= self.x):
+        if playerx >= self.x and playerx <= self.x + 200:
+        #if self.x + 50 >= playerx or self.x - 50 <= playerx:
+        #if (abs(self.x - playerx) <= self.x):
             return True
         else:
             return False

@@ -23,6 +23,11 @@ def collide(sprite1, sprite2):
     pygame.sprite.collide_rect(sprite1, sprite2)
 ############################################################################
 
+# Game Play Instructions
+    # Left, right arrow keys to move
+    # space bar to attack (cars are enemies)
+    # enter to enter castle (need to be in front of castle)
+    
 class Game(PygameGame):
 
     def init(self):
@@ -86,6 +91,7 @@ class Game(PygameGame):
         # scrolling when player reaches end of screen
         mapXc = -10
         if self.inMiniGame1 == False and self.inMiniGame2 == False:
+            
             if self.playerKilled == False:
                 if pressed_keys[K_LEFT]:
                     self.mapX -= mapXc
@@ -103,6 +109,7 @@ class Game(PygameGame):
             pygame.sprite.groupcollide(self.enemies, self.punches, True, True)
 
             for enemy in self.enemies:
+                print(enemy)
                 if self.player.enemyCollided(enemy.x, enemy.rect.width):
                     #self.player.killed()
                     self.playerLives -= 1
@@ -149,12 +156,16 @@ class Game(PygameGame):
     def keyPressed(self, keyCode, modifier):
         pressed_keys = pygame.key.get_pressed()
         Game.update(self,pressed_keys, keyCode, modifier)
-
+        print(self.playerKilled)
         if self.playerKilled == False:
+            print("I'm still ALIVE")
             if self.inMiniGame1 == False and self.inMiniGame2 == False:
                 self.player.update(pressed_keys)
-            if self.inMiniGame1 == True or self.inMiniGame2 == True:
+            if self.inMiniGame1 == True:
+                print("in game update func")
                 self.castle.update(pressed_keys)
+            if self.inMiniGame2 == True:
+                self.castle2.update(pressed_keys)
 
     def timerFired(self, dt):
 
@@ -218,7 +229,8 @@ class Game(PygameGame):
             self.player.score = self.castle.score
 
         if self.inMiniGame2 == True and self.inMiniGame1 == False:
-            self.castle2.inGame(self.mainMap)
+            #self.castle2.inGame(self.mainMap)
+            self.castle2.inGame(screen)
 
         # draw trees
 
@@ -263,7 +275,7 @@ class Game(PygameGame):
             self.mainMap.blit(surf, (0, self.width))
         # draw level one game screen
         if self.player.level == 1:
-            Game.levelOneDraw(self, self.mainMap)
+            Game.levelOneDraw(self, screen)
 
         if self.inMiniGame1 == False or self.inMiniGame2 == False:
             # player 

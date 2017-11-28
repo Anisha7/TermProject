@@ -52,7 +52,9 @@ class Player(pygame.sprite.Sprite):
 
     def enemyCollided(self, enemyX, enemyWidth):
         #if self.x >= enemyX - enemyWidth//2 and self.x <= enemyX + enemyWidth//2:
-        if self.x >= enemyX and self.x <= enemyX:
+        print("enemyX: ", enemyX)
+        print("self.x: ", self.x)
+        if self.x >= enemyX and self.x <= enemyX + 100:
             return True
         else:
             return False
