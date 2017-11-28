@@ -28,6 +28,8 @@ class Player(pygame.sprite.Sprite):
         # track player's direction
         self.d = 1
 
+        
+
     def update(self, pressed_keys):
         dist = 15
 
@@ -49,17 +51,33 @@ class Player(pygame.sprite.Sprite):
         surface.blit(self.surf, (self.x, self.y))
 
     def enemyCollided(self, enemyX, enemyWidth):
-        if self.x >= enemyX - enemyWidth//2 and self.x <= enemyX + enemyWidth//2:
+        #if self.x >= enemyX - enemyWidth//2 and self.x <= enemyX + enemyWidth//2:
+        if self.x >= enemyX and self.x <= enemyX:
             return True
         else:
             return False
 
-    def killed(self, surface):
-        self.surf = pygame.image.load('modules/AKplayer.png')
+    
+
+
+class Ghost(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        # x, y player died here
+        self.x = x
+        self.y = y
+        # player's ghost initialization
+        self.surf = pygame.image.load('modules/ghost.png')
         self.image = self.surf
         rect = self.surf.get_rect()
         self.rect = rect
-        
+        self.rect.move_ip(self.x, self.y)
+
+    def draw(self, surface):
+        surface.blit(self.surf, (self.x, self.y))
+
+    def updateGhost(self):
+        self.y -= 5
+
 
 class Punches(pygame.sprite.Sprite):
     speed = 25

@@ -74,7 +74,10 @@ class Game(PygameGame):
         self.pause = False
         # pause screen for animations
         self.playerKilled = False
+        self.timeCount = 0
         # track which animation: when player is killed
+
+        self.playerGhost = None
 
 
 
@@ -83,43 +86,32 @@ class Game(PygameGame):
         # scrolling when player reaches end of screen
         mapXc = -10
         if self.inMiniGame1 == False and self.inMiniGame2 == False:
-            if pressed_keys[K_LEFT]:
-                self.mapX -= mapXc
-            #if self.player.x > 250:
-            if pressed_keys[K_RIGHT]:
-                self.mapX += mapXc
+            if self.playerKilled == False:
+                if pressed_keys[K_LEFT]:
+                    self.mapX -= mapXc
+                #if self.player.x > 250:
+                if pressed_keys[K_RIGHT]:
+                    self.mapX += mapXc
 
-            # add punches, for player attack
-            if pressed_keys[K_SPACE]:
-                self.punches.add(Punches(self.player.x, self.player.y + 50, self.player.d))
+                # add punches, for player attack
+                if pressed_keys[K_SPACE]:
+                    self.punches.add(Punches(self.player.x, self.player.y + 50, self.player.d))
 
 
 
             # remove enemy if attacked
+            pygame.sprite.groupcollide(self.enemies, self.punches, True, True)
 
-            # try my own function
             for enemy in self.enemies:
                 if self.player.enemyCollided(enemy.x, enemy.rect.width):
                     #self.player.killed()
                     self.playerLives -= 1
+                    print("I died. lives left: ", self.playerLives)
                     self.player = Player(self.width, self.height, self.playerLives)
                     self.mapX = 0
-            # try group collide
-            pygame.sprite.groupcollide(self.enemies, self.punches, True, True)
-
-            playergrp = pygame.sprite.GroupSingle(self.player)
-            print(pygame.sprite.groupcollide(playergrp, self.enemies, False, False))
-
-            # try group and sprite collide
-            enemyAttack = pygame.sprite.spritecollide(self.player, self.enemies, True, False)
-            print(enemyAttack)
-            for enemy in enemyAttack:
-                print("gotchu")
-                self.player.killed()
-
-            for enemy in self.enemies:
-                if pygame.sprite.collide_rect(self.player, enemy):
-                    print("HAHAHA")
+                    self.playerKilled = True
+                    self.playerGhost = Ghost(self.player.x, self.player.y)
+            
 
             # entering castle
             if self.castle.castleCollide(self.player.x):
@@ -158,20 +150,27 @@ class Game(PygameGame):
         pressed_keys = pygame.key.get_pressed()
         Game.update(self,pressed_keys, keyCode, modifier)
 
-        if self.inMiniGame1 == False and self.inMiniGame2 == False:
-            self.player.update(pressed_keys)
-        if self.inMiniGame1 == True or self.inMiniGame2 == True:
-            self.castle.update(pressed_keys)
+        if self.playerKilled == False:
+            if self.inMiniGame1 == False and self.inMiniGame2 == False:
+                self.player.update(pressed_keys)
+            if self.inMiniGame1 == True or self.inMiniGame2 == True:
+                self.castle.update(pressed_keys)
 
     def timerFired(self, dt):
-        
-        self.enemies.update()
-        self.punches.update()
+
+        if self.playerKilled == False:
+            self.enemies.update()
+            self.punches.update()
+
+        if self.playerKilled == True:
+            self.timeCount += 10
+            self.playerGhost.updateGhost()
+            if self.timeCount == 500:
+                self.playerKilled = False
+                self.timeCount = 0
 
 
     def mainDraw(self, screen):
-
-        
 
         # draw circles to test scrolling
         circle1 = pygame.draw.circle(self.mainMap, white, (1000, 300), 20)
@@ -179,7 +178,7 @@ class Game(PygameGame):
         circle1 = pygame.draw.circle(self.mainMap, blue, (1000, 100), 20)
 
         
-            # score on screen
+        # score on screen
         myfont = pygame.font.SysFont('Comic Sans MS', 30)
         score = "Score: %d"%(self.player.score)
         textsurf = myfont.render(score, False, (0, 0, 0))
@@ -193,9 +192,10 @@ class Game(PygameGame):
         n = 0
         life = pygame.image.load('modules/life.png')
         life = pygame.transform.smoothscale(life, (20,20))
-        for i in range(self.player.lives):
-            n += 30
-            screen.blit(life, (140 + n, 20))
+        if self.player.lives > 0:
+            for i in range(self.player.lives):
+                n += 30
+                screen.blit(life, (140 + n, 20))
 
     def levelOneDraw(self, screen):
         #print("in here")
@@ -267,8 +267,12 @@ class Game(PygameGame):
 
         if self.inMiniGame1 == False or self.inMiniGame2 == False:
             # player 
-            self.player.draw(self.mainMap)
-            self.punches.draw(self.mainMap)
+            if self.playerKilled == False:
+                self.player.draw(self.mainMap)
+                self.punches.draw(self.mainMap)
+            if self.playerKilled == True:
+                self.playerGhost.draw(screen)
+
 
 
         pygame.display.flip()
