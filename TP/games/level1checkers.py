@@ -136,6 +136,7 @@ class Checkers(PygameGame):
             print("enemy: ", pos)
             row = pos[0]
             col = pos[1]
+
             r = self.squareSize//2
 
             left = (self.squareSize * col) + self.margin//2 + 150 + r
@@ -150,6 +151,7 @@ class Checkers(PygameGame):
         # if self.start == False:
         #     if pressed_keys[K_RETURN]:
         #         self.start = True
+        self.board = getBoard(self.player, self.enemy, self.board)
 
         if self.playerTurn == True:
             # tracking player navigation on board
@@ -210,41 +212,50 @@ class Checkers(PygameGame):
 
             i = random.randint(0,len(self.enemy) - 1)
             pos = self.enemy[i]
-            moves = getAllMoves2(pos, self.board, self.player, self.enemy)
-            bonusMoves = []
-            for move in moves:
-                if move[0] == pos[0] + 4:
-                    bonusMoves += move
 
-            if len(bonusMoves) > 0:
-                if len(bonusMoves) == 1:
-                    num = 0
-                else:
-                    num = random.randint(0, len(bonusMoves) - 1)
-                self.enemy[i] = bonusMoves[num]
-                self.playerTurn = True
-
-            else:
-
+            def enemyMove(i, pos):
+                moves = getAllMoves2(pos, self.board, self.player, self.enemy)
+                bonusMoves = []
                 for move in moves:
-                    if move[0] == pos[0] + 2:
-                        bonusMoves += [move]
+                    if move[0] == pos[0] + 4:
+                        bonusMoves += move
 
                 if len(bonusMoves) > 0:
                     if len(bonusMoves) == 1:
                         num = 0
                     else:
                         num = random.randint(0, len(bonusMoves) - 1)
-
+                    print("bonusMoves: ", bonusMoves)
                     self.enemy[i] = bonusMoves[num]
                     self.playerTurn = True
 
                 else:
-                    if len(moves) == 1:
-                        num = 0
-                    else:
-                        num = random.randint(0, len(moves) - 1)
 
-                    self.enemy[i] = moves[num]
-                    self.playerTurn = True
+                    for move in moves:
+                        if move[0] == pos[0] + 2:
+                            bonusMoves += [move]
+
+                    if len(bonusMoves) > 0:
+                        if len(bonusMoves) == 1:
+                            num = 0
+                        else:
+                            num = random.randint(0, len(bonusMoves) - 1)
+                        print("bonusMoves2: ", bonusMoves)
+                        self.enemy[i] = bonusMoves[num]
+                        self.playerTurn = True
+
+                    else:
+                        if len(moves) == 0:
+                            i = random.randint(0,len(self.enemy) - 1)
+                            pos = self.enemy[i]
+                            enemyMove(i, pos)
+                        if len(moves) == 1:
+                            num = 0
+                        else:
+                            num = random.randint(0, len(moves) - 1)
+                        print("Moves: ", moves)
+                        self.enemy[i] = moves[num]
+                        self.playerTurn = True
+
+            enemyMove(i, pos)
 

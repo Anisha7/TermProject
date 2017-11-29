@@ -20,6 +20,11 @@
         # if long jump
 #############################################################################
 def getBoard(player1, player2, board):
+
+    for row in range(len(board)):
+        for col in range(len(board[row])):
+            board[row][col] = 'E'
+
     for tuple in player1:
         row = tuple[0]
         col = tuple[1]
@@ -98,7 +103,7 @@ def twoPieceKill(pos1, pos2):
 
 # for one long jump
 def piecesKilled(pos1, pos2):
-    
+
     row1 = pos1[0] #player
     row2 = pos2[0] #enemy
     col1 = pos1[1]
@@ -133,14 +138,14 @@ def getAllMoves(pos, board, player1, player2):
     if isLegalMove((row-1,col-1), board):
         legalMoves += [(row-1, col-1)]
 
-    
-    if board[row-1][col+1] == 2: 
-        if isLegalMove((row-2, col+2), board):
-            legalMoves += [(row-2, col+2)]
-    
-    if board[row-1][col-1] == 2: 
-        if isLegalMove((row-2, col-2), board):
-            legalMoves += [(row-2, col-2)]
+    if onBoard(row-1, col+1, board):
+        if board[row-1][col+1] == 2: 
+            if isLegalMove((row-2, col+2), board):
+                legalMoves += [(row-2, col+2)]
+    if onBoard(row-1, col-1, board):
+        if board[row-1][col-1] == 2: 
+            if isLegalMove((row-2, col-2), board):
+                legalMoves += [(row-2, col-2)]
 
     legalMoves += getBonusMoves(row, col, board)
 
@@ -162,17 +167,17 @@ def getBonusMoves(row, col, board, count = 0, bonusMoves = None):
         return bonusMoves
 
     else:
-        
-        if board[row-1][col+1] == 2: 
-            if isLegalMove((row-2, col+2), board):
-                bonusMoves += [(row-2, col+2)]
-                bonusMoves += getBonusMoves2(row-2, col+2, board, count + 1, bonusMoves)
+        if onBoard(row-1, col+1, board):
+            if board[row-1][col+1] == 2: 
+                if isLegalMove((row-2, col+2), board):
+                    bonusMoves += [(row-2, col+2)]
+                    bonusMoves += getBonusMoves2(row-2, col+2, board, count + 1, bonusMoves)
 
-        
-        if board[row-1][col-1] == 2: 
-            if isLegalMove((row-2, col-2), board):
-                bonusMoves += [(row-2, col-2)]
-                bonusMoves += getBonusMoves2(row-2, col-2, board, count + 1, bonusMoves)
+        if onBoard(row-1, col-1, board):
+            if board[row-1][col-1] == 2: 
+                if isLegalMove((row-2, col-2), board):
+                    bonusMoves += [(row-2, col-2)]
+                    bonusMoves += getBonusMoves2(row-2, col-2, board, count + 1, bonusMoves)
 
         return bonusMoves
 
