@@ -38,6 +38,10 @@ class Game(PygameGame):
         # self.width, self.height from pygamegame
         # screen width and height
 
+        self.startScreen = True
+        self.splash = False
+        self.splashCount = 0
+
         self.blue = (70, 165, 224)
 
         self.mapWidth = 2000
@@ -177,19 +181,37 @@ class Game(PygameGame):
 
     def keyPressed(self, keyCode, modifier):
         pressed_keys = pygame.key.get_pressed()
-        Game.update(self,pressed_keys, keyCode, modifier)
-        print(self.playerKilled)
-        if self.playerKilled == False:
-            print("I'm still ALIVE")
-            if self.inMiniGame1 == False and self.inMiniGame2 == False:
-                self.player.update(pressed_keys)
-            if self.inMiniGame1 == True:
-                print("in game update func")
-                self.castle.update(pressed_keys)
-            if self.inMiniGame2 == True:
-                self.castle2.update(pressed_keys)
+        if self.startScreen == True:
+
+            if pressed_keys[K_RETURN]:
+                print("In HERE")
+                self.startScreen = False
+                self.splash = True
+
+        else:
+            
+            Game.update(self,pressed_keys, keyCode, modifier)
+            print(self.playerKilled)
+            if self.playerKilled == False:
+                print("I'm still ALIVE")
+                if self.inMiniGame1 == False and self.inMiniGame2 == False:
+                    if pressed_keys[K_ESCAPE]:
+                        self.startScreen = True
+                    self.player.update(pressed_keys)
+                if self.inMiniGame1 == True:
+                    print("in game update func")
+                    self.castle.update(pressed_keys)
+                if self.inMiniGame2 == True:
+                    self.castle2.update(pressed_keys)
 
     def timerFired(self, dt):
+
+        if self.splash == True:
+            self.splashCount += 1
+
+            if self.splashCount == 20:
+                self.splashCount = 0
+                self.splash = False
 
         if self.playerKilled == False:
             self.enemies.update()
@@ -218,7 +240,11 @@ class Game(PygameGame):
             self.coinTime = 0
 
 
+    def startScreen(self, surface):
+        myfont = pygame.font.SysFont('Comic Sans MS', 30)
 
+        surf =  pygame.image.load('modules/AlexKiddStartScreen.png')
+        surface.blit(surf, (0, 0))
 
     def mainDraw(self, screen):
 
@@ -247,8 +273,47 @@ class Game(PygameGame):
                 n += 30
                 screen.blit(life, (140 + n, 20))
 
+    def levelSplashScreen(self, screen):
+        self.surf = pygame.draw.rect(screen, (0, 0, 0), [0, 0, 800, 500])
+
+        myfont = pygame.font.SysFont('Comic Sans MS', 30)
+        text = "Level: %d"%(self.level)
+        textsurf = myfont.render(text, False, (125, 125, 125))
+        screen.blit(textsurf,(350, 100))
+
+        # lives = "Lives: "
+        # textsurf = myfont.render(lives, False, (0, 0, 0))
+        # screen.blit(textsurf,(400, 20))
+
+        n = 0
+        life = pygame.image.load('modules/life.png')
+        life = pygame.transform.smoothscale(life, (20,20))
+        if self.player.lives > 0:
+            for i in range(self.player.lives):
+                n += 30
+                screen.blit(life, (320 + n, 200))
+
+
     def levelOneDraw(self, screen):
         #print("in here")
+        # update scrolling on screen
+        screen.blit(self.mainMap, (self.mapX, 0, self.mapX + self.width, self.height))
+        if self.inMiniGame1 == False and self.inMiniGame2 == False:
+            self.mainMap.fill(self.blue)
+
+            # draw ground
+            surf = pygame.image.load('modules/level1/Ground1.png')
+            surf = pygame.transform.smoothscale(surf, (1700, self.width//4))
+            self.mainMap.blit(surf, (0, self.height - self.width//16))
+
+            Game.mainDraw(self, screen)
+
+            # draw ground
+            #rect1 = pygame.draw.rect(self.mainMap, white, (0, self.windowH - 25, 1700, self.windowH))
+            surf = pygame.image.load('modules/level1/Ground1.png')
+            surf = pygame.transform.smoothscale(surf, (1700, self.width//4))
+            #pygame.Surface.blit(self.mainMap, surf, rect1)
+            self.mainMap.blit(surf, (0, self.width))
         # draw castle
         self.castle.draw(self.mainMap)
         self.castle2.draw(self.mainMap)
@@ -290,37 +355,9 @@ class Game(PygameGame):
 
         self.enemies.draw(self.mainMap)
 
-        # coins
-
-        # treasure chests 
-
-    def redrawAll(self, screen):
-        # game setup
-
-        # update scrolling on screen
-        screen.blit(self.mainMap, (self.mapX, 0, self.mapX + self.width, self.height))
-        if self.inMiniGame1 == False and self.inMiniGame2 == False:
-            self.mainMap.fill(self.blue)
-
-            # draw ground
-            surf = pygame.image.load('modules/level1/Ground1.png')
-            surf = pygame.transform.smoothscale(surf, (1700, self.width//4))
-            self.mainMap.blit(surf, (0, self.height - self.width//16))
-
-            Game.mainDraw(self, screen)
-
-            # draw ground
-            #rect1 = pygame.draw.rect(self.mainMap, white, (0, self.windowH - 25, 1700, self.windowH))
-            surf = pygame.image.load('modules/level1/Ground1.png')
-            surf = pygame.transform.smoothscale(surf, (1700, self.width//4))
-            #pygame.Surface.blit(self.mainMap, surf, rect1)
-            self.mainMap.blit(surf, (0, self.width))
-        # draw level one game screen
-        if self.player.level == 1:
-            Game.levelOneDraw(self, screen)
-
+        
         if self.inMiniGame1 == False or self.inMiniGame2 == False:
-
+            # coins
             self.coins.draw(self.mainMap)
             # player 
             if self.playerKilled == False:
@@ -328,6 +365,24 @@ class Game(PygameGame):
                 self.punches.draw(self.mainMap)
             if self.playerKilled == True:
                 self.playerGhost.draw(screen)
+
+    def redrawAll(self, screen):
+        # game setup
+
+        # start screen
+        if self.startScreen == True:
+            Game.startScreen(self, screen)
+
+        else:
+            if self.splash == True:
+                Game.levelSplashScreen(self, screen)
+
+            else:
+                # draw level one game screen
+                if self.player.level == 1:
+                    Game.levelOneDraw(self, screen)
+
+            
 
         pygame.display.flip()
 

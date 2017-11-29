@@ -61,7 +61,7 @@ class Castle(pygame.sprite.Sprite):
 
             if self.game == 2:
                 self.checkers.draw(surface)
-                pass
+                self.score = self.checkers.score
 
     def exitCastle(self):
         if self.game == 1:
