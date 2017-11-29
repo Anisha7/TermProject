@@ -128,7 +128,7 @@ class Game(PygameGame):
                     #self.player.killed()
                     self.playerLives -= 1
                     print("I died. lives left: ", self.playerLives)
-                    self.player = Player(self.width, self.height, self.playerLives)
+                    self.player = Player(self.width, self.height, self.playerLives, self.score)
                     self.mapX = 0
                     self.playerKilled = True
                     self.playerGhost = Ghost(self.player.x, self.player.y)

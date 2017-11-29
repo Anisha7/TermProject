@@ -235,12 +235,12 @@ def getBonusMoves2(row, col, board, count = 0, bonusMoves = None):
 
     else:
         if onBoard(row+1, col+1, board):
-            if board[row+1][col+1] == 2: 
+            if board[row+1][col+1] == 1: 
                 if isLegalMove((row+2, col+2), board):
                     bonusMoves += [(row+2, col+2)]
                     bonusMoves += getBonusMoves2(row+2, col+2, board, count + 1, bonusMoves)
         if onBoard(row+1, col-1, board):
-            if board[row+1][col-1] == 2: 
+            if board[row+1][col-1] == 1: 
                 if isLegalMove((row+2, col-2), board):
                     bonusMoves += [(row+2, col-2)]
                     bonusMoves += getBonusMoves2(row+2, col-2, board, count + 1, bonusMoves)

@@ -33,6 +33,8 @@ class Checkers(PygameGame):
         self.margin = 100
         self.squareSize = (500 - self.margin) // 8
 
+        self.score = 0
+
         # self.player (red circle?)
         # player pieces: positions on board
         self.enemy =   [  (0,0), (0,1), (0,2), (0,3), (0,4), (0,5), (0,6), (0,7),
@@ -119,6 +121,8 @@ class Checkers(PygameGame):
 
                 pygame.draw.rect(surface, color, [left, top, self.squareSize, self.squareSize])
              
+
+        # draw player peices
         for pos in self.player:
             row = pos[0]
             col = pos[1]
@@ -131,7 +135,7 @@ class Checkers(PygameGame):
             
             pygame.draw.circle(surface, color, (left, top),r , 0)
 
-        print(self.enemy)
+        # draw enemy pieces
         for pos in self.enemy:
             print("enemy: ", pos)
             row = pos[0]
@@ -145,6 +149,39 @@ class Checkers(PygameGame):
             color = (70, 165, 224) # blue
 
             pygame.draw.circle(surface, color, (left, top),r , 0)
+
+        # draw killed enemies
+        j = 1
+        for i in range(len(self.killedEnemies)):
+
+            r = self.squareSize//2
+            left = self.squareSize*j
+
+            j += 1
+            if j == 3:
+                j = 1
+
+            top = top*(i+1)
+            color = (70, 165, 224) # blue
+
+            pygame.draw.circle(surface, color, (left, top),r , 0)
+
+        # draw killed players
+        l = 1
+        for i in range(len(self.killedPlayers)):
+
+            r = self.squareSize//2
+            left = 600 + self.squareSize*l
+
+            l += 1
+            if l == 3:
+                l = 1
+
+            top = top*(i+1)
+
+            color = (255, 0, 0) # red
+            pygame.draw.circle(surface, color, (left, top),r , 0)
+
 
     def update(self, pressed_keys):
 
@@ -196,7 +233,8 @@ class Checkers(PygameGame):
                                 j = self.enemy.index(enemyKilled)
                                 self.killedEnemies += [self.enemy.pop(j)]
                                 print(self.killedEnemies)
-                            # check if enemy is killed
+                                self.score += 5
+                                # check if enemy is killed
 
                             self.selected = None
                             self.playerTurn = False
@@ -216,6 +254,9 @@ class Checkers(PygameGame):
             def enemyMove(i, pos):
                 moves = getAllMoves2(pos, self.board, self.player, self.enemy)
                 bonusMoves = []
+                # track what move was made
+                moveMade = None
+                print("moves: ", moves)
                 for move in moves:
                     if move[0] == pos[0] + 4:
                         bonusMoves += move
@@ -227,6 +268,7 @@ class Checkers(PygameGame):
                         num = random.randint(0, len(bonusMoves) - 1)
                     print("bonusMoves: ", bonusMoves)
                     self.enemy[i] = bonusMoves[num]
+                    moveMade = bonusMoves[num]
                     self.playerTurn = True
 
                 else:
@@ -242,20 +284,35 @@ class Checkers(PygameGame):
                             num = random.randint(0, len(bonusMoves) - 1)
                         print("bonusMoves2: ", bonusMoves)
                         self.enemy[i] = bonusMoves[num]
+                        moveMade = bonusMoves[num]
                         self.playerTurn = True
 
                     else:
-                        if len(moves) == 0:
+                        #num = 0
+                        # use try and except for value error
+                        if len(moves) <= 0:
                             i = random.randint(0,len(self.enemy) - 1)
                             pos = self.enemy[i]
                             enemyMove(i, pos)
-                        if len(moves) == 1:
-                            num = 0
                         else:
-                            num = random.randint(0, len(moves) - 1)
-                        print("Moves: ", moves)
-                        self.enemy[i] = moves[num]
-                        self.playerTurn = True
+                            if len(moves) == 1:
+                                num = 0
+                            else:
+                                num = random.randint(0, len(moves) - 1)
+                            
+
+                            print("Moves: ", moves)
+                            self.enemy[i] = moves[num]
+                            moveMade = moves[num]
+                            self.playerTurn = True
+
+                if moveMade != None:
+                    if abs(moveMade[0] - pos[0]) == 2:
+                        playerKilled = piecesKilled(pos, moveMade)
+                        l = self.player.index(playerKilled)
+                        self.killedPlayers += [self.player.pop(l)]
+                        print(self.killedPlayers)
+                        moveMade = None
 
             enemyMove(i, pos)
 
