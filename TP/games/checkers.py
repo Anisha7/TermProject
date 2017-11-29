@@ -88,10 +88,34 @@ def onePieceKill(pos1, pos2):
         return True
     return False
 
+
+
 def twoPieceKill(pos1, pos2):
     if abs(pos2[0] - pos1[0]) == 4:
         return True
     return False
+
+
+# for one long jump
+def piecesKilled(pos1, pos2):
+    
+    row1 = pos1[0] #player
+    row2 = pos2[0] #enemy
+    col1 = pos1[1]
+    col2 = pos2[1]
+
+    if row1 > row2:
+        row = row1 - 1
+    else:
+        row = row1 + 1
+
+    if col1 > col2:
+        col = col1 - 1
+    else:
+        col = col1 + 1
+
+    return (row,col)
+
 #############################################################################
 # for player
 
@@ -121,10 +145,10 @@ def getAllMoves(pos, board, player1, player2):
     legalMoves += getBonusMoves(row, col, board)
 
     # if queens
-    playerQueens = queenList(player1)
-    for i in playerQueens:
-        if (row,col) == player1[i]:
-            legalMoves += getAllMoves2(pos, board, player2, player1)
+    # playerQueens = queenList(player1)
+    # for i in playerQueens:
+    #     if (row,col) == player1[i]:
+    #         legalMoves += getAllMoves2(pos, board, player2, player1)
 
     return legalMoves
 
@@ -187,10 +211,10 @@ def getAllMoves2(pos, board, player1, player2):
 
     legalMoves += getBonusMoves2(row, col, board)
 
-    enemyQueens = queenList2(player2)
-    for i in enemyQueens:
-        if (row,col) == player2[i]:
-            legalMoves += getAllMoves(pos, board, player2, player1)
+    # enemyQueens = queenList2(player2)
+    # for i in enemyQueens:
+    #     if (row,col) == player2[i]:
+    #         legalMoves += getAllMoves(pos, board, player2, player1)
     print(legalMoves)
     return legalMoves
 

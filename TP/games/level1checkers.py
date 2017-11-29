@@ -38,11 +38,13 @@ class Checkers(PygameGame):
         self.enemy =   [  (0,0), (0,1), (0,2), (0,3), (0,4), (0,5), (0,6), (0,7),
                             (1,0), (1,1), (1,2), (1,3), (1,4), (1,5), (1,6), (1,7)
                         ]
+        self.killedEnemies = []
         # self.enemy (blue circle?)
         # enemy pieces: positions on board
         self.player =   [  (6,0), (6,1), (6,2), (6,3), (6,4), (6,5), (6,6), (6,7),
                             (7,0), (7,1), (7,2), (7,3), (7,4), (7,5), (7,6), (7,7)
                         ]
+        self.killedPlayers = []
 
         self.board = getBoard(self.player, self.enemy, board)
         # initial row and col for player selected
@@ -185,8 +187,18 @@ class Checkers(PygameGame):
                             #print("I'm Legal")
                             i = self.player.index(self.selected)
                             self.player[i] = point
+
+                            # check if long jump
+                            if abs(self.row - self.selected[0]) == 2:
+                                enemyKilled = piecesKilled(self.selected, (self.row, self.col))
+                                j = self.enemy.index(enemyKilled)
+                                self.killedEnemies += [self.enemy.pop(j)]
+                                print(self.killedEnemies)
+                            # check if enemy is killed
+
                             self.selected = None
                             self.playerTurn = False
+
 
             # deselecting player piece
             if pressed_keys[K_RSHIFT] or pressed_keys[K_LSHIFT]:
@@ -196,7 +208,7 @@ class Checkers(PygameGame):
         #enemyTurn: pick best move for enemy, or random pick
         if self.playerTurn == False:
 
-            i = random.randint(0,15)
+            i = random.randint(0,len(self.enemy) - 1)
             pos = self.enemy[i]
             moves = getAllMoves2(pos, self.board, self.player, self.enemy)
             bonusMoves = []
