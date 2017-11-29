@@ -34,10 +34,7 @@ def getBoard(player1, player2, board):
 
     return board
 
-def isLegalMove(pos, board):
-    row = pos[0]
-    col = pos[1]
-
+def onBoard(row, col, board):
     # check if on board
     if row < 0:
         return False
@@ -49,6 +46,14 @@ def isLegalMove(pos, board):
     if col > 7:
         return False
 
+    return True
+
+def isLegalMove(pos, board):
+    row = pos[0]
+    col = pos[1]
+
+    if not onBoard(row, col, board):
+        return False
     # check if empty
     if board[row][col] == "E":
         return True
@@ -76,6 +81,17 @@ def queenList2(player2):
             enemyQueens += [i]
 
     return enemyQueens
+
+# check if a piece was killed
+def onePieceKill(pos1, pos2):
+    if abs(pos2[0] - pos1[0]) == 2:
+        return True
+    return False
+
+def twoPieceKill(pos1, pos2):
+    if abs(pos2[0] - pos1[0]) == 4:
+        return True
+    return False
 #############################################################################
 # for player
 
@@ -97,6 +113,7 @@ def getAllMoves(pos, board, player1, player2):
     if board[row-1][col+1] == 2: 
         if isLegalMove((row-2, col+2), board):
             legalMoves += [(row-2, col+2)]
+    
     if board[row-1][col-1] == 2: 
         if isLegalMove((row-2, col-2), board):
             legalMoves += [(row-2, col-2)]
@@ -121,12 +138,13 @@ def getBonusMoves(row, col, board, count = 0, bonusMoves = None):
         return bonusMoves
 
     else:
-
+        
         if board[row-1][col+1] == 2: 
             if isLegalMove((row-2, col+2), board):
                 bonusMoves += [(row-2, col+2)]
                 bonusMoves += getBonusMoves2(row-2, col+2, board, count + 1, bonusMoves)
 
+        
         if board[row-1][col-1] == 2: 
             if isLegalMove((row-2, col-2), board):
                 bonusMoves += [(row-2, col-2)]
@@ -156,15 +174,16 @@ def getAllMoves2(pos, board, player1, player2):
     # when using this pos, if legal, make sure to
         # check distance between pos to del enemy
         # if long jump
-    if board[row+1][col+1] == 1: 
-        if isLegalMove((row+2, col+2), board):
-            legalMoves += [(row+2, col+2)]
+    if onBoard(row+1, col+1, board):
+        if board[row+1][col+1] == 1: 
+            if isLegalMove((row+2, col+2), board):
+                legalMoves += [(row+2, col+2)]
             # check for double long jump
             
-
-    if board[row+1][col-1] == 1: 
-        if isLegalMove((row+2, col-2), board):
-            legalMoves += [(row+2, col-2)]
+    if onBoard(row+1, col-1, board):
+        if board[row+1][col-1] == 1: 
+            if isLegalMove((row+2, col-2), board):
+                legalMoves += [(row+2, col-2)]
 
     legalMoves += getBonusMoves2(row, col, board)
 
@@ -172,7 +191,7 @@ def getAllMoves2(pos, board, player1, player2):
     for i in enemyQueens:
         if (row,col) == player2[i]:
             legalMoves += getAllMoves(pos, board, player2, player1)
-
+    print(legalMoves)
     return legalMoves
 
 
@@ -186,16 +205,16 @@ def getBonusMoves2(row, col, board, count = 0, bonusMoves = None):
         return bonusMoves
 
     else:
-
-        if board[row+1][col+1] == 2: 
-            if isLegalMove((row+2, col+2), board):
-                bonusMoves += [(row+2, col+2)]
-                bonusMoves += getBonusMoves2(row+2, col+2, board, count + 1, bonusMoves)
-
-        if board[row+1][col-1] == 2: 
-            if isLegalMove((row+2, col-2), board):
-                bonusMoves += [(row+2, col-2)]
-                bonusMoves += getBonusMoves2(row+2, col-2, board, count + 1, bonusMoves)
+        if onBoard(row+1, col+1, board):
+            if board[row+1][col+1] == 2: 
+                if isLegalMove((row+2, col+2), board):
+                    bonusMoves += [(row+2, col+2)]
+                    bonusMoves += getBonusMoves2(row+2, col+2, board, count + 1, bonusMoves)
+        if onBoard(row+1, col-1, board):
+            if board[row+1][col-1] == 2: 
+                if isLegalMove((row+2, col-2), board):
+                    bonusMoves += [(row+2, col-2)]
+                    bonusMoves += getBonusMoves2(row+2, col-2, board, count + 1, bonusMoves)
 
         return bonusMoves
 

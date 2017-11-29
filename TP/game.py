@@ -9,6 +9,7 @@ from main.pygamegame import *
 from main.player import *
 from environment.enemy import *
 from environment.castle import *
+from environment.coins import *
 #from environment.level import *
 
 ############################################################################
@@ -48,8 +49,9 @@ class Game(PygameGame):
         self.level = 1
         self.levelOver = False
         self.playerLives = 3
+        self.score = 0
         # PLAYER
-        self.player = Player(self.width, self.height, self.playerLives)
+        self.player = Player(self.width, self.height, self.playerLives, self.score)
 
         self.punches = pygame.sprite.Group()
 
@@ -84,6 +86,14 @@ class Game(PygameGame):
 
         self.playerGhost = None
 
+        # coins
+        self.coinTime = 0
+        self.coins = pygame.sprite.Group()
+
+        for i in range(4):
+            x = random.randint(100, 1400)
+            self.coins.add(Coin(x, self.player.y))
+
 
 
 
@@ -104,9 +114,13 @@ class Game(PygameGame):
                     self.punches.add(Punches(self.player.x, self.player.y + 50, self.player.d))
 
 
-
+            enemynum = len(self.enemies)
             # remove enemy if attacked
             pygame.sprite.groupcollide(self.enemies, self.punches, True, True)
+
+            if len(self.enemies) < enemynum:
+                self.player.score += 5
+                self.score = self.player.score
 
             for enemy in self.enemies:
                 print(enemy)
@@ -119,6 +133,14 @@ class Game(PygameGame):
                     self.playerKilled = True
                     self.playerGhost = Ghost(self.player.x, self.player.y)
             
+
+            # check coin collide
+            for coin in self.coins:
+                if self.player.coinCollided(coin.x):
+                    self.player.score += 1
+                    self.score = self.player.score
+                    coin.remove()
+
 
             # entering castle
             if self.castle.castleCollide(self.player.x):
@@ -180,6 +202,23 @@ class Game(PygameGame):
                 self.playerKilled = False
                 self.timeCount = 0
 
+        # add coin every 20 secs. It stays on screen for 20 sec.
+        self.coinTime += 1
+
+        if self.coinTime == 20:
+
+            x = random.randint(100, 1400)
+            self.coins.add(Coin(x, self.player.y))
+        
+        if self.coinTime == 40:
+            for coin in self.coins:
+                coin.remove()
+                break
+            #self.coins.remove(self.coins[0])
+            self.coinTime = 0
+
+
+
 
     def mainDraw(self, screen):
 
@@ -226,7 +265,10 @@ class Game(PygameGame):
             self.player.x = x
             self.player.y = y
 
-            self.player.score = self.castle.score
+        else:
+            self.player.score += self.castle.score
+            self.castle.score = 0
+            self.score = self.player.score
 
         if self.inMiniGame2 == True and self.inMiniGame1 == False:
             #self.castle2.inGame(self.mainMap)
@@ -278,14 +320,14 @@ class Game(PygameGame):
             Game.levelOneDraw(self, screen)
 
         if self.inMiniGame1 == False or self.inMiniGame2 == False:
+
+            self.coins.draw(self.mainMap)
             # player 
             if self.playerKilled == False:
                 self.player.draw(self.mainMap)
                 self.punches.draw(self.mainMap)
             if self.playerKilled == True:
                 self.playerGhost.draw(screen)
-
-
 
         pygame.display.flip()
 

@@ -120,7 +120,7 @@ class RockPaperScissor(PygameGame):
         myfont = pygame.font.SysFont('Comic Sans MS', 30)
 
         if self.playing == True:
-            surface.blit(self.surf, (0, 0))
+            surface.blit(self.surf, (0 - 50, 0))
             surface.blit(self.playerMove, (950//4, self.height//2 - 100))
             if self.enemyTurn == True:
                 #print("yes")

@@ -50,6 +50,7 @@ class Checkers(PygameGame):
         self.col = 0
         #self.selected = False
         self.selected = None
+        self.playermoves = None
 
         # track turns
         self.playerTurn = True
@@ -89,26 +90,30 @@ class Checkers(PygameGame):
                     else:
                         i = 1
 
-                if self.playerTurn == True:
+                #if self.playerTurn == True:
 
-                    # highlighting selected player checker piece
+                
 
-                    if self.selected != None:
-                        #if row == self.selected[0] and col == self.selected[1]:
-                        playermoves = getAllMoves(self.selected, self.board, self.player, self.enemy)
-                        
-                        for pos in playermoves:
-                            posr = pos[0]
-                            posc = pos[1]
-                            if row == posr and col == posc:
-                                color = (60, 247, 69)
+                # highlighting selected player checker piece
 
-                        if row == self.selected[0] and col == self.selected[1]:
-                            color = (255,248,8)
+                if self.selected != None:
+                    #print("selected: ", self.selected)
+                    #if row == self.selected[0] and col == self.selected[1]:
+                    playermoves = getAllMoves(self.selected, self.board, self.player, self.enemy)
+                    self.playermoves = playermoves
+                    #print(playermoves)
+                    for pos in playermoves:
+                        posr = pos[0]
+                        posc = pos[1]
+                        if row == posr and col == posc:
+                            color = (60, 247, 69)
 
-                    # highlighting selected rect
-                    if row == self.row and col == self.col:
-                        color = (255, 0, 255)
+                    if row == self.selected[0] and col == self.selected[1]:
+                        color = (255,248,8)
+
+                # highlighting selected rect
+                if row == self.row and col == self.col:
+                    color = (255, 0, 255)
 
                 pygame.draw.rect(surface, color, [left, top, self.squareSize, self.squareSize])
              
@@ -121,13 +126,12 @@ class Checkers(PygameGame):
             top = (self.squareSize * row) + self.margin//2 + r
 
             color = (255, 0, 0) # red
-            #print("circle testing")
-            #print(left)
-            #print(top)
-            #print(self.squareSize)
+            
             pygame.draw.circle(surface, color, (left, top),r , 0)
 
+        print(self.enemy)
         for pos in self.enemy:
+            print("enemy: ", pos)
             row = pos[0]
             col = pos[1]
             r = self.squareSize//2
@@ -137,10 +141,6 @@ class Checkers(PygameGame):
 
             color = (70, 165, 224) # blue
 
-            #print("circle testing")
-            #print(left)
-            #print(top)
-            #print(self.squareSize)
             pygame.draw.circle(surface, color, (left, top),r , 0)
 
     def update(self, pressed_keys):
@@ -167,30 +167,33 @@ class Checkers(PygameGame):
             # if player piece is selected
             if self.selected == None:
                 if pressed_keys[K_RETURN]:
+
                     row = self.row
                     col = self.col
                     if self.board[row][col] == 1:
                         self.selected = (row, col)
 
+                    #print("I'm selected!", self.selected)
+
+            else:
+                # moving selected player piece to legal pos
+                if pressed_keys[K_RETURN]:
+                    point = (self.row, self.col)
+                    if (point in self.playermoves):
+                        #print("HELLO THERE")
+                        if self.selected in self.player:
+                            #print("I'm Legal")
+                            i = self.player.index(self.selected)
+                            self.player[i] = point
+                            self.selected = None
+                            self.playerTurn = False
+
             # deselecting player piece
             if pressed_keys[K_RSHIFT] or pressed_keys[K_LSHIFT]:
                 self.selected = None
 
-            # moving selected player piece
-            if self.selected != None:
-                if pressed_keys[K_RETURN]:
-                    # selected piece pos
-                    row = self.selected[0]
-                    col = self.selected[1]
-                    if (row, col) in self.player:
-                        i = self.player.index((row, col))
-
-                        # new piece pos
-                        self.player[i] = (self.row, self.col)
-                        self.selected = None
-                        self.playerTurn = False
-
-        # enemyTurn: pick best move for enemy, or random pick
+        
+        #enemyTurn: pick best move for enemy, or random pick
         if self.playerTurn == False:
 
             i = random.randint(0,15)
@@ -199,11 +202,14 @@ class Checkers(PygameGame):
             bonusMoves = []
             for move in moves:
                 if move[0] == pos[0] + 4:
-                    bonusMoves += [move]
+                    bonusMoves += move
 
-            if bonusMoves != None:
-                num = random.randint(0, len(bonusMoves) - 1)
-                self.enemy[i] = [bonusMoves[num]]
+            if len(bonusMoves) > 0:
+                if len(bonusMoves) == 1:
+                    num = 0
+                else:
+                    num = random.randint(0, len(bonusMoves) - 1)
+                self.enemy[i] = bonusMoves[num]
                 self.playerTurn = True
 
             else:
@@ -212,13 +218,21 @@ class Checkers(PygameGame):
                     if move[0] == pos[0] + 2:
                         bonusMoves += [move]
 
-                if bonusMoves != None:
-                    num = random.randint(0, len(bonusMoves) - 1)
-                    self.enemy[i] = [bonusMoves[num]]
+                if len(bonusMoves) > 0:
+                    if len(bonusMoves) == 1:
+                        num = 0
+                    else:
+                        num = random.randint(0, len(bonusMoves) - 1)
+
+                    self.enemy[i] = bonusMoves[num]
                     self.playerTurn = True
 
                 else:
-                    num = random.randint(0, len(moves) - 1)
-                    self.enemy[i] = [moves[num]]
+                    if len(moves) == 1:
+                        num = 0
+                    else:
+                        num = random.randint(0, len(moves) - 1)
+
+                    self.enemy[i] = moves[num]
                     self.playerTurn = True
 

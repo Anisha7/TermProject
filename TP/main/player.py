@@ -10,7 +10,7 @@ from environment import *
 #############################################################################
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, x, y, lives):
+    def __init__(self, x, y, lives, score):
         pygame.sprite.Sprite.__init__(self)
         super(Player, self).__init__()
         
@@ -22,7 +22,7 @@ class Player(pygame.sprite.Sprite):
         self.x = x//3
         self.y = y - 50 - rect.h//2
         self.lives = lives
-        self.score = 0
+        self.score = score
         self.level = 1
 
         # track player's direction
@@ -59,6 +59,11 @@ class Player(pygame.sprite.Sprite):
         else:
             return False
 
+    def coinCollided(self, x):
+        if self.x >= x and self.x <= x + 50:
+            return True
+        else:
+            return False
     
 
 
