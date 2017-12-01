@@ -107,11 +107,20 @@ class Game(PygameGame):
         if self.inMiniGame1 == False and self.inMiniGame2 == False:
             
             if self.playerKilled == False:
-                if pressed_keys[K_LEFT]:
-                    self.mapX -= mapXc
-                #if self.player.x > 250:
-                if pressed_keys[K_RIGHT]:
-                    self.mapX += mapXc
+                # level one scrolling
+                if self.level == 1:
+                    if pressed_keys[K_LEFT]:
+                        self.mapX -= mapXc
+                    #if self.player.x > 250:
+                    if pressed_keys[K_RIGHT]:
+                        self.mapX += mapXc
+
+                if self.level == 2:
+                    if pressed_keys[K_UP]:
+                        self.mapX -= mapXc
+                    #if self.player.x > 250:
+                    if pressed_keys[K_DOWN]:
+                        self.mapX += mapXc
 
                 # add punches, for player attack
                 if pressed_keys[K_SPACE]:
@@ -130,12 +139,13 @@ class Game(PygameGame):
                 print(enemy)
                 if self.player.enemyCollided(enemy.x, enemy.rect.width):
                     #self.player.killed()
+                    self.playerGhost = Ghost(self.player.x, self.player.y)
                     self.playerLives -= 1
                     print("I died. lives left: ", self.playerLives)
                     self.player = Player(self.width, self.height, self.playerLives, self.score)
-                    self.mapX = 0
+                    
                     self.playerKilled = True
-                    self.playerGhost = Ghost(self.player.x, self.player.y)
+                    
             
 
             # check coin collide
@@ -195,14 +205,17 @@ class Game(PygameGame):
             if self.playerKilled == False:
                 print("I'm still ALIVE")
                 if self.inMiniGame1 == False and self.inMiniGame2 == False:
-                    if pressed_keys[K_ESCAPE]:
-                        self.startScreen = True
                     self.player.update(pressed_keys)
                 if self.inMiniGame1 == True:
                     print("in game update func")
                     self.castle.update(pressed_keys)
                 if self.inMiniGame2 == True:
                     self.castle2.update(pressed_keys)
+
+        # if self.inMiniGame1 == False and self.inMiniGame2 == False:
+        #     print("I'm not in a mini game")
+        #     if pressed_keys[K_ESCAPE]:
+        #         self.startScreen = True
 
     def timerFired(self, dt):
 
@@ -224,6 +237,7 @@ class Game(PygameGame):
             if self.timeCount == 500:
                 self.playerKilled = False
                 self.timeCount = 0
+                self.mapX = 0
 
         # add coin every 20 secs. It stays on screen for 20 sec.
         self.coinTime += 1
@@ -240,6 +254,8 @@ class Game(PygameGame):
             #self.coins.remove(self.coins[0])
             self.coinTime = 0
 
+        if self.inMiniGame2 == True:
+            self.castle.timerFired()
 
     def startScreen(self, surface):
         myfont = pygame.font.SysFont('Comic Sans MS', 30)
@@ -250,9 +266,9 @@ class Game(PygameGame):
     def mainDraw(self, screen):
 
         # draw circles to test scrolling
-        circle1 = pygame.draw.circle(self.mainMap, white, (1000, 300), 20)
-        circle1 = pygame.draw.circle(self.mainMap, purple, (1000, 200), 20)
-        circle1 = pygame.draw.circle(self.mainMap, blue, (1000, 100), 20)
+        # circle1 = pygame.draw.circle(self.mainMap, white, (1000, 300), 20)
+        # circle1 = pygame.draw.circle(self.mainMap, purple, (1000, 200), 20)
+        # circle1 = pygame.draw.circle(self.mainMap, blue, (1000, 100), 20)
 
         
         # score on screen
@@ -279,7 +295,7 @@ class Game(PygameGame):
 
         myfont = pygame.font.SysFont('Comic Sans MS', 30)
         text = "Level: %d"%(self.level)
-        textsurf = myfont.render(text, False, (125, 125, 125))
+        textsurf = myfont.render(text, False, (225, 225, 225))
         screen.blit(textsurf,(350, 100))
 
         # lives = "Lives: "
@@ -298,6 +314,9 @@ class Game(PygameGame):
     def levelOneDraw(self, screen):
         #print("in here")
         # update scrolling on screen
+
+        
+
         screen.blit(self.mainMap, (self.mapX, 0, self.mapX + self.width, self.height))
         if self.inMiniGame1 == False and self.inMiniGame2 == False:
             self.mainMap.fill(self.blue)
@@ -307,6 +326,7 @@ class Game(PygameGame):
             surf = pygame.transform.smoothscale(surf, (1700, self.width//4))
             self.mainMap.blit(surf, (0, self.height - self.width//16))
 
+            
             Game.mainDraw(self, screen)
 
             # draw ground
@@ -368,6 +388,27 @@ class Game(PygameGame):
             if self.playerKilled == True:
                 self.playerGhost.draw(screen)
 
+    def levelTwoDraw(self, screen):
+        self.mapWidth = 800
+        self.mapHeight = 2000
+        mainMap = pygame.Surface((self.mapWidth, self.mapHeight))
+        self.mainMap = mainMap.convert()
+        self.mainMap.fill(self.blue)
+        screen.blit(self.mainMap, (0, self.mapX, self.width, self.mapX + self.height))
+
+        surf = pygame.image.load('modules/level1/Ground1.png')
+        surf = pygame.transform.smoothscale(surf, (self.width, self.width//4))
+        self.mainMap.blit(surf, (0, self.height - self.width//16))
+
+        # draw circles to test scrolling
+        circle1 = pygame.draw.circle(self.mainMap, white, (300, 1000), 20)
+        circle1 = pygame.draw.circle(self.mainMap, purple, (300, 700), 20)
+        circle1 = pygame.draw.circle(self.mainMap, blue, (300, 900), 20)
+        
+        Game.mainDraw(self, screen)
+        
+
+
     def redrawAll(self, screen):
         # game setup
 
@@ -385,7 +426,7 @@ class Game(PygameGame):
                     Game.levelOneDraw(self, screen)
 
                 if self.player.level == 2:
-                    Game.levelOneDraw(self, screen)
+                    Game.levelTwoDraw(self, screen)
 
             
 

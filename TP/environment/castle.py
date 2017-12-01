@@ -26,7 +26,9 @@ class Castle(pygame.sprite.Sprite):
         self.rockPaperScissor = RockPaperScissor(self.score)
         self.checkers = Checkers()
 
-
+    def timerFired(self):
+        self.checkers.timerFired()
+        
     def update(self, pressed_keys):
         print("I'm in castle update")
         print('level: ', self.level)

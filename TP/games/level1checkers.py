@@ -66,14 +66,54 @@ class Checkers(PygameGame):
         pass
 
     def endScreen(self, surface):
-        pass
+        endsurf = pygame.draw.rect(surface, (0, 0, 0), (0, 0, 800, 500))
+
+        myfont = pygame.font.SysFont('Comic Sans MS', 30)
+
+        if len(self.player) > len(self.enemy):
+            endText = "You Win!"
+            textsurf = myfont.render(endText, False, (255, 255, 255))
+            surface.blit(textsurf, (400, 100))
+
+            endText = "For each piece alive, you get +5 points."
+            textsurf = myfont.render(endText, False, (255, 255, 255))
+            surface.blit(textsurf, (400, 300))
+
+            for i in self.player:
+                self.score += 5
+
+            endText = "Score: %d"%(self.score)
+            textsurf = myfont.render(endText, False, (255, 255, 255))
+            surface.blit(textsurf, (400, 250))
+
+        else:
+            endText = "You Lose!"
+            textsurf = myfont.render(endText, False, (255, 255, 255))
+            surface.blit(textsurf, (400, 100))
+
+        exitInst = "Press ESC to exit Castle"
+        textsurf = myfont.render(exitInst, False, (255, 255, 255))
+        surface.blit(textsurf,(400, 450))  
+
 
     def gameScreen(self, surface):
+
+        
+        
 
         self.surf = pygame.draw.rect(surface, (183, 106, 47), [0, 0, 800, 500]) # background surface
         colorList = [(229, 212, 188), (71, 39, 19)]
         i = 0
         count = 0
+
+
+        # Draw score
+        myfont = pygame.font.SysFont('Comic Sans MS', 30)
+        score = "Score: %d"%(self.score)
+        textsurf = myfont.render(score, False, (0, 0, 0))
+        surface.blit(textsurf,(400, 20))
+
+
         # create grid
         for row in range(len(self.board)):
             for col in range(len(self.board[row])):
@@ -157,46 +197,52 @@ class Checkers(PygameGame):
             pygame.draw.circle(surface, color, (left, top),r , 0)
 
         # # draw killed enemies
-        # j = 1
-        # for i in range(len(self.killedEnemies)):
 
-        #     r = self.squareSize//2
-        #     left = self.squareSize*j
+        for i in range(len(self.killedEnemies)):
+            r = self.squareSize//2
+            x = self.squareSize
+            y = self.squareSize*i + self.margin
 
-        #     j += 1
-        #     if j == 3:
-        #         j = 1
+            if i > 7:
+                x += self.squareSize*2
+                y += self.squareSize*i + self.margin
 
-        #     top = top*(i+1)
-        #     color = (70, 165, 224) # blue
-
-        #     pygame.draw.circle(surface, color, (left, top),r , 0)
+            color = (70, 165, 224) # blue
+            pygame.draw.circle(surface, color, (x, y),r , 0)
 
         # # draw killed players
-        # l = 1
-        # for i in range(len(self.killedPlayers)):
 
-        #     r = self.squareSize//2
-        #     left = 600 + self.squareSize*l
+        for i in range(len(self.killedPlayers)):
+            r = self.squareSize//2
+            x = self.squareSize + 550 + self.margin//2
+            y = self.squareSize*i + self.margin
 
-        #     l += 1
-        #     if l == 3:
-        #         l = 1
+            if i > 7:
+                x += self.squareSize
+                y += self.squareSize*i + self.margin
 
-        #     top = top*(i+1)
-
-        #     color = (255, 0, 0) # red
-        #     pygame.draw.circle(surface, color, (left, top),r , 0)
+            color = (255, 0, 0) # blue
+            pygame.draw.circle(surface, color, (x, y),r , 0)
 
 
     def draw(self, surface):
-        Checkers.gameScreen(self, surface)
+        if self.start == True:
+            Checkers.startScreen(self, surface)
+        elif len(self.player) == 0 or len(self.enemy) == 0:
+            Checkers.endScreen(self, surface)
+        else:
+            Checkers.gameScreen(self, surface)
+
+    def timerFired(self):
+        pass
 
     def update(self, pressed_keys):
 
         # if self.start == False:
         #     if pressed_keys[K_RETURN]:
         #         self.start = True
+
+        # update board
         self.board = getBoard(self.player, self.enemy, self.board)
 
         if self.playerTurn == True:
@@ -229,6 +275,11 @@ class Checkers(PygameGame):
                 # moving selected player piece to legal pos
                 if pressed_keys[K_RETURN]:
                     point = (self.row, self.col)
+
+                    if point == self.selected:
+                        if pressed_keys[K_RETURN]:
+                            self.selected = None
+
                     if (point in self.playermoves):
                         #print("HELLO THERE")
                         if self.selected in self.player:
@@ -253,6 +304,7 @@ class Checkers(PygameGame):
             if pressed_keys[K_RSHIFT] or pressed_keys[K_LSHIFT]:
                 self.selected = None
 
+        # update board
         self.board = getBoard(self.player, self.enemy, self.board)
         
         # enemyTurn: pick best move for enemy, or random pick
@@ -304,6 +356,7 @@ class Checkers(PygameGame):
             # helper to make one jump or two jump enemy move
             def enemyBonusMove(i, bonusMoves, moveMade = None, count = 0):
                 if count == 2:
+                    self.playerTurn = True
                     return
                 if len(bonusMoves) == 0:
                     return
@@ -334,19 +387,20 @@ class Checkers(PygameGame):
                         if move[0] == pos[0] + 2:
                             bonusMoves += [move]
 
-                    enemyBonusMove(i, bonusMoves, None, 1)
-                    self.playerTurn = True
-
+                    print("******2", bonusMoves)
+                    if len(bonusMoves) > 0:
+                        enemyBonusMove(i, bonusMoves, None, 1)
+                    
                     return
 
             if len(bonusMoves) > 0:
                 enemyBonusMove(i, bonusMoves)
+                self.playerTurn = True
 
             else:
                 makeMove(i, pos, moves)
+                self.playerTurn = True
 
-            
-
-            #enemyMove(i, pos)
+            # update board
             self.board = getBoard(self.player, self.enemy, self.board)
 
