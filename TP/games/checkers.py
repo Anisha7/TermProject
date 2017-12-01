@@ -1,4 +1,9 @@
 # checkers helpers
+
+# Wrote my own algorithms for making checkers work
+# Such that it shows the player all moves it can make
+# and helps pick the best move for the enemy (computer)
+
 # check if checkers board move is legal
 
 # plan
@@ -14,10 +19,11 @@
             # player, opponent, empty, opponent, empty
 
 
-    # check for long jumps over enemy
+    # check for long jumps over enemy (recursive function?)
     # when using pos, if legal, make sure to
         # check distance between pos to del enemy
         # if long jump
+
 #############################################################################
 def getBoard(player1, player2, board):
 

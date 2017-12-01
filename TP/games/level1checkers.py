@@ -59,10 +59,16 @@ class Checkers(PygameGame):
         # track turns
         self.playerTurn = True
 
+        # check if game is over
+        self.gameOver = True
+
     def startScreen(self, surface):
         pass
 
-    def draw(self, surface):
+    def endScreen(self, surface):
+        pass
+
+    def gameScreen(self, surface):
 
         self.surf = pygame.draw.rect(surface, (183, 106, 47), [0, 0, 800, 500]) # background surface
         colorList = [(229, 212, 188), (71, 39, 19)]
@@ -137,7 +143,7 @@ class Checkers(PygameGame):
 
         # draw enemy pieces
         for pos in self.enemy:
-            print("enemy: ", pos)
+            #print("enemy: ", pos)
             row = pos[0]
             col = pos[1]
 
@@ -150,38 +156,41 @@ class Checkers(PygameGame):
 
             pygame.draw.circle(surface, color, (left, top),r , 0)
 
-        # draw killed enemies
-        j = 1
-        for i in range(len(self.killedEnemies)):
+        # # draw killed enemies
+        # j = 1
+        # for i in range(len(self.killedEnemies)):
 
-            r = self.squareSize//2
-            left = self.squareSize*j
+        #     r = self.squareSize//2
+        #     left = self.squareSize*j
 
-            j += 1
-            if j == 3:
-                j = 1
+        #     j += 1
+        #     if j == 3:
+        #         j = 1
 
-            top = top*(i+1)
-            color = (70, 165, 224) # blue
+        #     top = top*(i+1)
+        #     color = (70, 165, 224) # blue
 
-            pygame.draw.circle(surface, color, (left, top),r , 0)
+        #     pygame.draw.circle(surface, color, (left, top),r , 0)
 
-        # draw killed players
-        l = 1
-        for i in range(len(self.killedPlayers)):
+        # # draw killed players
+        # l = 1
+        # for i in range(len(self.killedPlayers)):
 
-            r = self.squareSize//2
-            left = 600 + self.squareSize*l
+        #     r = self.squareSize//2
+        #     left = 600 + self.squareSize*l
 
-            l += 1
-            if l == 3:
-                l = 1
+        #     l += 1
+        #     if l == 3:
+        #         l = 1
 
-            top = top*(i+1)
+        #     top = top*(i+1)
 
-            color = (255, 0, 0) # red
-            pygame.draw.circle(surface, color, (left, top),r , 0)
+        #     color = (255, 0, 0) # red
+        #     pygame.draw.circle(surface, color, (left, top),r , 0)
 
+
+    def draw(self, surface):
+        Checkers.gameScreen(self, surface)
 
     def update(self, pressed_keys):
 
@@ -244,75 +253,100 @@ class Checkers(PygameGame):
             if pressed_keys[K_RSHIFT] or pressed_keys[K_LSHIFT]:
                 self.selected = None
 
+        self.board = getBoard(self.player, self.enemy, self.board)
         
-        #enemyTurn: pick best move for enemy, or random pick
+        # enemyTurn: pick best move for enemy, or random pick
+        # created my own algorithm to pick the best move for the enemy
         if self.playerTurn == False:
 
+
+            # pick random enemy
             i = random.randint(0,len(self.enemy) - 1)
             pos = self.enemy[i]
 
-            def enemyMove(i, pos):
-                moves = getAllMoves2(pos, self.board, self.player, self.enemy)
-                bonusMoves = []
-                # track what move was made
-                moveMade = None
-                print("moves: ", moves)
-                for move in moves:
-                    if move[0] == pos[0] + 4:
-                        bonusMoves += move
+            # check if there is a bonus move for enemy
+            for loc in self.enemy:
+                bonusList = getBonusMoves2(loc[0], loc[1], self.board)
+                if len(bonusList) > 0:
+                    print("new loc: ", loc)
+                    pos = loc
+                    i = self.enemy.index(loc)
 
-                if len(bonusMoves) > 0:
+            # to make long jumps work for one and two kills
+
+            # make a normal random move for enemy if no bonuses
+            def makeMove(i, pos, moves):
+                if len(moves) > 0:
+                    if len(moves) == 1:
+                        num = 0
+                    else:
+                        num = random.randint(0, len(moves) - 1)
+                    
+                    print("Moves: ", moves)
+                    self.enemy[i] = moves[num]
+                    moveMade = moves[num]
+                    self.playerTurn = True
+                    return
+
+                else:
+                    i = random.randint(0,len(self.enemy) - 1)
+                    pos = self.enemy[i]
+                    moves = getAllMoves2(pos, self.board, self.player, self.enemy)
+                    makeMove(i, pos, moves)
+
+            # find bonus moves
+            moves = getAllMoves2(pos, self.board, self.player, self.enemy)
+            bonusMoves = []
+            for move in moves:
+                if move[0] == pos[0] + 2:
+                    bonusMoves += [move]
+
+            # helper to make one jump or two jump enemy move
+            def enemyBonusMove(i, bonusMoves, moveMade = None, count = 0):
+                if count == 2:
+                    return
+                if len(bonusMoves) == 0:
+                    return
+
+                else:
+                    # make one jump bonus move
+                    
                     if len(bonusMoves) == 1:
                         num = 0
                     else:
                         num = random.randint(0, len(bonusMoves) - 1)
-                    print("bonusMoves: ", bonusMoves)
+                    
                     self.enemy[i] = bonusMoves[num]
                     moveMade = bonusMoves[num]
-                    self.playerTurn = True
+                    # remove killed player
+                    if moveMade != None:
+                        if abs(moveMade[0] - pos[0]) == 2:
+                            playerKilled = piecesKilled(moveMade, pos)
+                            l = self.player.index(playerKilled)
+                            self.killedPlayers += [self.player.pop(l)]
+                            print(self.killedPlayers)
+                            moveMade = None
 
-                else:
-
+                    # get new moves
+                    moves = getAllMoves2(self.enemy[i], self.board, self.player, self.enemy)
+                    bonusMoves = []
                     for move in moves:
                         if move[0] == pos[0] + 2:
                             bonusMoves += [move]
 
-                    if len(bonusMoves) > 0:
-                        if len(bonusMoves) == 1:
-                            num = 0
-                        else:
-                            num = random.randint(0, len(bonusMoves) - 1)
-                        print("bonusMoves2: ", bonusMoves)
-                        self.enemy[i] = bonusMoves[num]
-                        moveMade = bonusMoves[num]
-                        self.playerTurn = True
+                    enemyBonusMove(i, bonusMoves, None, 1)
+                    self.playerTurn = True
 
-                    else:
-                        #num = 0
-                        # use try and except for value error
-                        if len(moves) <= 0:
-                            i = random.randint(0,len(self.enemy) - 1)
-                            pos = self.enemy[i]
-                            enemyMove(i, pos)
-                        else:
-                            if len(moves) == 1:
-                                num = 0
-                            else:
-                                num = random.randint(0, len(moves) - 1)
-                            
+                    return
 
-                            print("Moves: ", moves)
-                            self.enemy[i] = moves[num]
-                            moveMade = moves[num]
-                            self.playerTurn = True
+            if len(bonusMoves) > 0:
+                enemyBonusMove(i, bonusMoves)
 
-                if moveMade != None:
-                    if abs(moveMade[0] - pos[0]) == 2:
-                        playerKilled = piecesKilled(pos, moveMade)
-                        l = self.player.index(playerKilled)
-                        self.killedPlayers += [self.player.pop(l)]
-                        print(self.killedPlayers)
-                        moveMade = None
+            else:
+                makeMove(i, pos, moves)
 
-            enemyMove(i, pos)
+            
+
+            #enemyMove(i, pos)
+            self.board = getBoard(self.player, self.enemy, self.board)
 

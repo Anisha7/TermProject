@@ -208,6 +208,7 @@ class Game(PygameGame):
 
         if self.splash == True:
             self.splashCount += 1
+            print("in level spash screen")
 
             if self.splashCount == 20:
                 self.splashCount = 0
@@ -347,9 +348,10 @@ class Game(PygameGame):
         self.mainMap.blit(flag, (1500, self.width//4))
 
         # check if player finished level1
-        if self.player.x >= self.mapWidth - 350:
-            self.levelOver = True
+        if self.player.x >= 1500 and self.player.x <= 1600:
             self.player.level += 1
+            self.level = self.player.level
+            self.splash = True
         
         # enemies
 
@@ -380,6 +382,9 @@ class Game(PygameGame):
             else:
                 # draw level one game screen
                 if self.player.level == 1:
+                    Game.levelOneDraw(self, screen)
+
+                if self.player.level == 2:
                     Game.levelOneDraw(self, screen)
 
             
