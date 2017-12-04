@@ -10,10 +10,10 @@ from environment import *
 #############################################################################
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, x, y, lives, score):
+    def __init__(self, x, y, lives, score, PID):
         pygame.sprite.Sprite.__init__(self)
         super(Player, self).__init__()
-        
+        self.PID = PID
         self.surf = pygame.image.load('modules/AKplayer.png')
         self.image = self.surf
         rect = self.surf.get_rect()
@@ -64,6 +64,12 @@ class Player(pygame.sprite.Sprite):
         if pressed_keys[K_UP]:
             self.jump = True
             
+    def getPos(self):
+        return (self.x, self.y)
+
+    def move(self,x,y):
+        self.x = x
+        self.y = y
 
         # self.lives -= 1 if collide with enemy
         
@@ -85,6 +91,9 @@ class Player(pygame.sprite.Sprite):
             return True
         else:
             return False
+
+    def changePID(self, PID):
+        self.PID = PID
 
 class Ghost(pygame.sprite.Sprite):
     def __init__(self, x, y):

@@ -1,7 +1,38 @@
 # game.py for single player
 
 #############################################################################
+#############################
+# Sockets Client Demo
+# by Rohan Varma
+# adapted by Kyle Chin
+#############################
 
+import socket
+import threading
+from queue import Queue
+
+HOST = "" # put your IP address here if playing on multiple computers
+PORT = 50003
+
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+server.connect((HOST,PORT))
+print("connected to server")
+
+def handleServerMsg(server, serverMsg):
+  server.setblocking(1)
+  msg = ""
+  command = ""
+  while True:
+    msg += server.recv(10).decode("UTF-8")
+    command = msg.split("\n")
+    while (len(command) > 1):
+      readyMsg = command[0]
+      msg = "\n".join(command[1:])
+      serverMsg.put(readyMsg)
+      command = msg.split("\n")
+
+############################################################################      
 import pygame
 import random
 
@@ -55,7 +86,15 @@ class Game(PygameGame):
         self.playerLives = 3
         self.score = 0
         # PLAYER
-        self.player = Player(self.width, self.height, self.playerLives, self.score)
+        self.player = Player(self.width, self.height, self.playerLives, self.score, "Lonely")
+        self.me = self.player
+        self.otherStrangers = dict()
+
+        # multiplayer
+        
+        self.server = server
+        self.serverMsg = serverMsg
+        #self.player = player
 
         self.punches = pygame.sprite.Group()
 
@@ -139,7 +178,7 @@ class Game(PygameGame):
                 self.score = self.player.score
 
             for enemy in self.enemies:
-                print(enemy)
+                #print(enemy)
                 if self.player.enemyCollided(enemy.x, enemy.rect.width):
                     #self.player.killed()
                     self.playerGhost = Ghost(self.player.x, self.player.y)
@@ -178,7 +217,7 @@ class Game(PygameGame):
         # exiting castle
         if self.inMiniGame1 == True:
             if pressed_keys[K_ESCAPE]:
-                print("exit castle")
+                #print("exit castle")
                 #self.castle.exitCastle()
                 self.inMiniGame1 = False
                 self.castle.exitCastle()
@@ -198,20 +237,26 @@ class Game(PygameGame):
         if self.startScreen == True:
 
             if pressed_keys[K_RETURN]:
-                print("In HERE")
+                #print("In HERE")
                 self.startScreen = False
                 self.splash = True
 
         else:
             
             Game.update(self,pressed_keys, keyCode, modifier)
-            print(self.playerKilled)
+            #print(self.playerKilled)
             if self.playerKilled == False:
-                print("I'm still ALIVE")
+                #print("I'm still ALIVE")
                 if self.inMiniGame1 == False and self.inMiniGame2 == False:
+                    # update player's position
                     self.player.update(pressed_keys)
+                    # send message to server
+                    (x, y) = self.player.getPos()
+                    msg = "playerMoved %d %d\n" % (x, y)
+                    self.server.send(msg.encode())
+
                 if self.inMiniGame1 == True:
-                    print("in game update func")
+                    #print("in game update func")
                     self.castle.update(pressed_keys)
                 if self.inMiniGame2 == True:
                     self.castle2.update(pressed_keys)
@@ -225,13 +270,12 @@ class Game(PygameGame):
         #     print("I'm not in a mini game")
         #     if pressed_keys[K_ESCAPE]:
         #         self.startScreen = True
-
-    def timerFired(self, dt):
-        # 'pump' client to look for new events
+    def myTimerFired(self, dt):
+        # my player
 
         if self.splash == True:
             self.splashCount += 1
-            print("in level spash screen")
+            #print("in level spash screen")
 
             if self.splashCount == 20:
                 self.splashCount = 0
@@ -268,6 +312,37 @@ class Game(PygameGame):
             self.castle.timerFired()
 
         self.player.timerFired()
+    
+    def timerFired(self, dt):
+        Game.myTimerFired(self, dt)
+        
+        # multiplayer: get and update positions of other players
+        # timerFired receives instructions and executes them
+        while (serverMsg.qsize() > 0):
+          msg = serverMsg.get(False)
+          try:
+            print("received: ", msg, "\n")
+            msg = msg.split()
+            command = msg[0]
+
+            if (command == "myIDis"):
+              myPID = msg[1]
+              self.me.changePID(myPID)
+
+            elif (command == "newPlayer"):
+              newPID = msg[1]
+              self.otherStrangers[newPID] = Player(self.width, self.height, 3, 0, newPID)
+
+            elif (command == "playerMoved"):
+              PID = msg[1]
+              x = int(msg[2])
+              y = int(msg[3])
+              self.otherStrangers[PID].move(x, y)
+
+          except:
+            print("failed")
+          serverMsg.task_done()
+
 
     def startScreen(self, surface):
         myfont = pygame.font.SysFont('Comic Sans MS', 30)
@@ -398,6 +473,13 @@ class Game(PygameGame):
             if self.playerKilled == True:
                 self.playerGhost.draw(screen)
 
+            # draw other players
+            # draw other players
+            # for playerName in self.otherStrangers:
+            #     print("I CAN BE UPDATED")
+            #     print(self.otherStrangers[playerName])
+            #     self.otherStrangers[playerName].draw(self.mainMap)
+
     def levelTwoDraw(self, screen):
         self.mapWidth = 800
         self.mapHeight = 2000
@@ -450,13 +532,19 @@ class Game(PygameGame):
         # self.inMiniGame1 = True
         # self.castle = Castle(200, self.player.y - 235, self.player.score, 1, 2)
         # self.castle.inGame(screen)
+            # draw other players
+            for playerName in self.otherStrangers:
+                print("I CAN BE UPDATED")
+                print(self.otherStrangers[playerName])
+                self.otherStrangers[playerName].draw(self.mainMap)
 
                 
                 
 
         pygame.display.flip()
 
-
+serverMsg = Queue(100)
+threading.Thread(target = handleServerMsg, args = (server, serverMsg)).start()
 
 Game(800, 500).run()
 
