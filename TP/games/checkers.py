@@ -2,7 +2,7 @@
 
 # Wrote my own algorithms for making checkers work
 # Such that it shows the player all moves it can make
-# and helps pick the best move for the enemy (computer)
+# and helps pick the best move for the enemy ()
 
 # check if checkers board move is legal
 
@@ -19,7 +19,7 @@
             # player, opponent, empty, opponent, empty
 
 
-    # check for long jumps over enemy (recursive function?)
+    # check for long jumps over enemy
     # when using pos, if legal, make sure to
         # check distance between pos to del enemy
         # if long jump

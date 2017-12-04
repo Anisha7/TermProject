@@ -43,8 +43,10 @@ class Enemy(pygame.sprite.Sprite):
         # change images (won't work, use sprite command)
         if self.dist < 0:
             self.surf = pygame.image.load('modules/enemyCarLeft.png')
+            self.image = self.surf
         else:
             self.surf = pygame.image.load('modules/enemyCar.png')
+            self.image = self.surf
 
     def remove(self):
         self.kill()

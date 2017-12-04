@@ -59,11 +59,14 @@ class Game(PygameGame):
 
         self.punches = pygame.sprite.Group()
 
-        # level one castles
+        # castles
         self.castle = Castle(200, self.player.y - 235, self.player.score, 1, self.level)
         self.inMiniGame1 = False
         self.castle2 = Castle(900, self.player.y - 235, self.player.score, 2, self.level)
         self.inMiniGame2 = False
+
+        # level 2
+
 
         # scrolling tracker
         self.mapX = 0
@@ -191,6 +194,7 @@ class Game(PygameGame):
 
     def keyPressed(self, keyCode, modifier):
         pressed_keys = pygame.key.get_pressed()
+
         if self.startScreen == True:
 
             if pressed_keys[K_RETURN]:
@@ -212,6 +216,11 @@ class Game(PygameGame):
                 if self.inMiniGame2 == True:
                     self.castle2.update(pressed_keys)
 
+
+        ## to return to start screen
+        if pressed_keys[K_e]:
+            print("exit game")
+            self.startScreen = True
         # if self.inMiniGame1 == False and self.inMiniGame2 == False:
         #     print("I'm not in a mini game")
         #     if pressed_keys[K_ESCAPE]:
@@ -256,6 +265,8 @@ class Game(PygameGame):
 
         if self.inMiniGame2 == True:
             self.castle.timerFired()
+
+        self.player.timerFired()
 
     def startScreen(self, surface):
         myfont = pygame.font.SysFont('Comic Sans MS', 30)
@@ -314,8 +325,6 @@ class Game(PygameGame):
     def levelOneDraw(self, screen):
         #print("in here")
         # update scrolling on screen
-
-        
 
         screen.blit(self.mainMap, (self.mapX, 0, self.mapX + self.width, self.height))
         if self.inMiniGame1 == False and self.inMiniGame2 == False:
@@ -396,24 +405,34 @@ class Game(PygameGame):
         self.mainMap.fill(self.blue)
         screen.blit(self.mainMap, (0, self.mapX, self.width, self.mapX + self.height))
 
+        ## not drawing
         surf = pygame.image.load('modules/level1/Ground1.png')
         surf = pygame.transform.smoothscale(surf, (self.width, self.width//4))
-        self.mainMap.blit(surf, (0, self.height - self.width//16))
+        self.mainMap.blit(surf, (0, self.mapHeight - self.width//16))
+        ##
 
-        # draw circles to test scrolling
-        circle1 = pygame.draw.circle(self.mainMap, white, (300, 1000), 20)
-        circle1 = pygame.draw.circle(self.mainMap, purple, (300, 700), 20)
-        circle1 = pygame.draw.circle(self.mainMap, blue, (300, 900), 20)
-        
         Game.mainDraw(self, screen)
-        
 
+
+        ## not showing up...why?
+        # draw circles to test scrolling
+        circle1 = pygame.draw.circle(self.mainMap, white, (self.mapWidth//2, 1000), 20)
+        circle1 = pygame.draw.circle(self.mainMap, purple, (self.mapWidth//2, 300), 20)
+        circle1 = pygame.draw.circle(self.mainMap, blue, (200, 50), 20)
+        
+        pygame.draw.rect(self.mainMap, red, (0, self.mapHeight - 25, self.mapWidth, self.mapHeight))
+        pygame.draw.rect(self.mainMap, red, (0, 0, 400, self.mapHeight))
+        pygame.draw.rect(self.mainMap, red, (self.mapWidth - 400, 0, self.mapWidth, self.mapHeight))
+        ##
+        #pygame.display.update()
+        pygame.display.flip()
 
     def redrawAll(self, screen):
         # game setup
 
         # start screen
         if self.startScreen == True:
+            Game.init(self)
             Game.startScreen(self, screen)
 
         else:
@@ -427,14 +446,17 @@ class Game(PygameGame):
 
                 if self.player.level == 2:
                     Game.levelTwoDraw(self, screen)
+        # self.inMiniGame1 = True
+        # self.castle = Castle(200, self.player.y - 235, self.player.score, 1, 2)
+        # self.castle.inGame(screen)
 
-            
+                
+                
 
         pygame.display.flip()
 
 
 
 Game(800, 500).run()
-
 
 

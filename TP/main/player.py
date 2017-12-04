@@ -20,7 +20,9 @@ class Player(pygame.sprite.Sprite):
         self.rect = rect
         
         self.x = x//3
+        
         self.y = y - 50 - rect.h//2
+        self.ground = self.y
         self.lives = lives
         self.score = score
         self.level = 1
@@ -28,11 +30,26 @@ class Player(pygame.sprite.Sprite):
         # track player's direction
         self.d = 1
 
-        
+        # jumping
+        self.jump = False
+        self.jumpCount = 0
+        self.jumpd = 8
+
+    def timerFired(self):
+        if self.jump == True:
+            self.y -= self.jumpd
+            self.jumpCount += 1
+            if self.jumpCount == 5:
+                self.jumpd = -8
+
+            if self.jumpCount == 10:
+                self.jump = False
+                self.jumpd = 8
+                self.jumpCount = 0
 
     def update(self, pressed_keys):
         dist = 15
-
+        
         if self.x > 150:
             if pressed_keys[K_LEFT]:
                 self.surf = pygame.image.load('modules/AKplayerLeft.png')
@@ -43,6 +60,10 @@ class Player(pygame.sprite.Sprite):
                 self.surf = pygame.image.load('modules/AKplayer.png')
                 self.x += dist
                 self.d = 1
+
+        if pressed_keys[K_UP]:
+            self.jump = True
+            
 
         # self.lives -= 1 if collide with enemy
         
@@ -64,8 +85,6 @@ class Player(pygame.sprite.Sprite):
             return True
         else:
             return False
-    
-
 
 class Ghost(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -121,9 +140,11 @@ class Punches(pygame.sprite.Sprite):
         if self.d > 0:
             self.vx = 8
             self.surf = pygame.image.load('modules/boomerang.png')
+            self.image = self.surf
         else:
             self.vx = -8
             self.surf = pygame.image.load('modules/boomerangLeft.png')
+            self.image = self.surf
 
         # distance travelled
         self.dist = 0
