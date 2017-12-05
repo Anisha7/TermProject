@@ -41,6 +41,7 @@ from main.player import *
 from environment.enemy import *
 from environment.castle import *
 from environment.coins import *
+from environment.platforms import *
 #from environment.level import *
 
 ############################################################################
@@ -80,6 +81,10 @@ class Game(PygameGame):
         mainMap = pygame.Surface((self.mapWidth, self.mapHeight))
         self.mainMap = mainMap.convert()
         self.mainMap.fill(self.blue)
+
+        mainMap2 = pygame.Surface((self.mapHeight + 100, self.mapWidth))
+        self.mainMap2 = mainMap2.convert()
+        self.mainMap2.fill(self.blue)
 
         self.level = 1
         self.levelOver = False
@@ -138,14 +143,41 @@ class Game(PygameGame):
 
         for i in range(4):
             x = random.randint(100, 1400)
-            self.coins.add(Coin(x, self.player.y))
+            y = random.randint(self.player.y, self.player.y + 20)
+            self.coins.add(Coin(x, y))
+
+        # platforms
+        # level1
+        self.platforms1 = pygame.sprite.Group()
+        x = 400
+        y = self.player.y + 20
+
+        for i in range(6):
+            platform = Platform(x,y,self.mapWidth, self.mapHeight, 1)
+            x = random.randint(400, self.mapWidth)
+            y = random.randint(self.player.y + 12, self.player.y + 24)
+
+            self.platforms1.add(platform)
+        
+        # level2
+        self.platforms2 = pygame.sprite.Group()
+
+        y = 30
+        x = 0
+        while y < self.mapHeight:
+            platform = Platform(x,y,self.mapHeight + 100, self.mapWidth, 2)
+            y += 20
+            x = random.randint(0,self.width)
+
+            self.platforms2.add(platform)
+
 
 
     def update(self, pressed_keys, keyCode, modifier):
 
 
         # scrolling when player reaches end of screen
-        mapXc = -10
+        mapXc = -14
         if self.inMiniGame1 == False and self.inMiniGame2 == False:
             
             if self.playerKilled == False:
@@ -184,7 +216,7 @@ class Game(PygameGame):
                     self.playerGhost = Ghost(self.player.x, self.player.y)
                     self.playerLives -= 1
                     print("I died. lives left: ", self.playerLives)
-                    self.player = Player(self.width, self.height, self.playerLives, self.score)
+                    self.player = Player(self.width, self.height, self.playerLives, self.score, self.player.PID)
                     
                     self.playerKilled = True
                     
@@ -299,7 +331,8 @@ class Game(PygameGame):
         if self.coinTime == 20:
 
             x = random.randint(100, 1400)
-            self.coins.add(Coin(x, self.player.y))
+            y = random.randint(self.player.y, self.player.y + 20)
+            self.coins.add(Coin(x, y))
         
         if self.coinTime == 40:
             for coin in self.coins:
@@ -319,29 +352,36 @@ class Game(PygameGame):
         # multiplayer: get and update positions of other players
         # timerFired receives instructions and executes them
         while (serverMsg.qsize() > 0):
-          msg = serverMsg.get(False)
-          try:
-            print("received: ", msg, "\n")
-            msg = msg.split()
-            command = msg[0]
+            msg = serverMsg.get(False)
+            try:
+                print("received: ", msg, "\n")
+                msg = msg.split()
+                command = msg[0]
 
-            if (command == "myIDis"):
-              myPID = msg[1]
-              self.me.changePID(myPID)
+                if (command == "myIDis"):
+                    myPID = msg[1]
+                    self.me.changePID(myPID)
 
-            elif (command == "newPlayer"):
-              newPID = msg[1]
-              self.otherStrangers[newPID] = Player(self.width, self.height, 3, 0, newPID)
+                if (command == "newPlayer"):
+                    print("adding new player to other strangers")
+                    newPID = msg[1]
+                    self.otherStrangers[newPID] = Player(self.width, self.height, 3, 0, newPID)
+                    print("other strangers:", self.otherStrangers)
 
-            elif (command == "playerMoved"):
-              PID = msg[1]
-              x = int(msg[2])
-              y = int(msg[3])
-              self.otherStrangers[PID].move(x, y)
+                if (command == "playerMoved"):
+                    PID = msg[1]
+                    x = int(msg[2])
+                    y = int(msg[3])
+                    self.otherStrangers[PID].move(x, y)
 
-          except:
-            print("failed")
-          serverMsg.task_done()
+            except Exception as error:
+                print(self.otherStrangers)
+                print("error:")
+                print(error)
+                print(command)
+                print(msg)
+                print("failed")
+            serverMsg.task_done()
 
 
     def startScreen(self, surface):
@@ -403,12 +443,13 @@ class Game(PygameGame):
         # update scrolling on screen
 
         screen.blit(self.mainMap, (self.mapX, 0, self.mapX + self.width, self.height))
+
         if self.inMiniGame1 == False and self.inMiniGame2 == False:
             self.mainMap.fill(self.blue)
 
             # draw ground
             surf = pygame.image.load('modules/level1/Ground1.png')
-            surf = pygame.transform.smoothscale(surf, (1700, self.width//4))
+            surf = pygame.transform.smoothscale(surf, (1800, self.width//4))
             self.mainMap.blit(surf, (0, self.height - self.width//16))
 
             
@@ -423,6 +464,7 @@ class Game(PygameGame):
         # draw castle
         self.castle.draw(self.mainMap)
         self.castle2.draw(self.mainMap)
+        #self.platforms1.draw(self.mainMap)
 
         if self.inMiniGame1 == True:
             self.castle.inGame(screen)
@@ -447,6 +489,8 @@ class Game(PygameGame):
 
         # draw trees
 
+        # draw platforms
+        self.platforms1.draw(self.mainMap)
 
         # draw finish line flag
         flag = pygame.image.load('modules/finishFlag.png')
@@ -457,6 +501,7 @@ class Game(PygameGame):
             self.player.level += 1
             self.level = self.player.level
             self.splash = True
+            self.mapX = 0
         
         # enemies
 
@@ -481,33 +526,44 @@ class Game(PygameGame):
             #     self.otherStrangers[playerName].draw(self.mainMap)
 
     def levelTwoDraw(self, screen):
-        self.mapWidth = 800
-        self.mapHeight = 2000
-        mainMap = pygame.Surface((self.mapWidth, self.mapHeight))
-        self.mainMap = mainMap.convert()
-        self.mainMap.fill(self.blue)
-        screen.blit(self.mainMap, (0, self.mapX, self.width, self.mapX + self.height))
+        # self.mapWidth = 800
+        # self.mapHeight = 2000
+        # mainMap = pygame.Surface((self.mapWidth, self.mapHeight))
+        # self.mainMap = mainMap.convert()
+        # self.mainMap.fill(self.blue)
+        screen.blit(self.mainMap2, (0, self.mapX, 800, self.mapX + self.height))
+        #screen.blit(self.mainMap2, (0, self.mapX , 800, self.mapHeight - self.mapX))
 
-        ## not drawing
         surf = pygame.image.load('modules/level1/Ground1.png')
         surf = pygame.transform.smoothscale(surf, (self.width, self.width//4))
-        self.mainMap.blit(surf, (0, self.mapHeight - self.width//16))
-        ##
+        self.mainMap2.blit(surf, (0, self.mapHeight - self.width//16))
+
+        #self.platforms2.draw(self.mainMap2)
+        
 
         Game.mainDraw(self, screen)
 
-
-        ## not showing up...why?
         # draw circles to test scrolling
-        circle1 = pygame.draw.circle(self.mainMap, white, (self.mapWidth//2, 1000), 20)
-        circle1 = pygame.draw.circle(self.mainMap, purple, (self.mapWidth//2, 300), 20)
-        circle1 = pygame.draw.circle(self.mainMap, blue, (200, 50), 20)
+        circle1 = pygame.draw.circle(self.mainMap2, white, (self.mapWidth//2, 1000), 20)
+        circle1 = pygame.draw.circle(self.mainMap2, purple, (self.mapWidth//2, 300), 20)
+        circle1 = pygame.draw.circle(self.mainMap2, blue, (200, 50), 20)
         
-        pygame.draw.rect(self.mainMap, red, (0, self.mapHeight - 25, self.mapWidth, self.mapHeight))
-        pygame.draw.rect(self.mainMap, red, (0, 0, 400, self.mapHeight))
-        pygame.draw.rect(self.mainMap, red, (self.mapWidth - 400, 0, self.mapWidth, self.mapHeight))
+
+        #pygame.draw.rect(self.mainMap2, red, (0, 0, 100, self.mapWidth))
+        # left wall
+        surf = pygame.image.load('modules/level1/Ground1.png')
+        surf = pygame.transform.smoothscale(surf, (100, self.mapWidth))
+        self.mainMap2.blit(surf, (0, 0))
+        self.mainMap2.blit(surf, (700, 0))
+
+
+
+        #pygame.draw.rect(self.mainMap2, red, (self.mapHeight, 0, self.mapHeight, self.mapWidth))
+        #pygame.draw.rect(self.mainMap2, red, (self.mapHeight - 25, 0, self.mapHeight, self.mapWidth))
         ##
         #pygame.display.update()
+
+        # make a platforms class, detect collisions wiyh player abd updqte pos accordingly
         pygame.display.flip()
 
     def redrawAll(self, screen):
@@ -529,16 +585,16 @@ class Game(PygameGame):
 
                 if self.player.level == 2:
                     Game.levelTwoDraw(self, screen)
-        # self.inMiniGame1 = True
-        # self.castle = Castle(200, self.player.y - 235, self.player.score, 1, 2)
-        # self.castle.inGame(screen)
+        
             # draw other players
             for playerName in self.otherStrangers:
                 print("I CAN BE UPDATED")
                 print(self.otherStrangers[playerName])
                 self.otherStrangers[playerName].draw(self.mainMap)
 
-                
+        # self.inMiniGame1 = True
+        # self.castle = Castle(200, self.player.y - 235, self.player.score, 1, 2)
+        # self.castle.inGame(screen)
                 
 
         pygame.display.flip()

@@ -22,7 +22,7 @@ class Player(pygame.sprite.Sprite):
         self.x = x//3
         
         self.y = y - 50 - rect.h//2
-        self.ground = self.y
+        self.ground = y - 50 - rect.h//2
         self.lives = lives
         self.score = score
         self.level = 1
@@ -33,22 +33,28 @@ class Player(pygame.sprite.Sprite):
         # jumping
         self.jump = False
         self.jumpCount = 0
-        self.jumpd = 8
+        self.jumpd = 14
+        self.jumpPress = 0
 
     def timerFired(self):
         if self.jump == True:
-            self.y -= self.jumpd
+            if self.jumpd == 14:
+                self.y -= self.jumpd
+            else:
+                while self.y < self.ground:
+                    self.y -= self.jumpd
+            
             self.jumpCount += 1
-            if self.jumpCount == 5:
-                self.jumpd = -8
+            if self.jumpCount == 4:
+                self.jumpd *= -1
 
-            if self.jumpCount == 10:
+            if self.jumpCount == 8:
                 self.jump = False
-                self.jumpd = 8
+                self.jumpd *= -1
                 self.jumpCount = 0
 
     def update(self, pressed_keys):
-        dist = 15
+        dist = 16
         
         if self.x > 150:
             if pressed_keys[K_LEFT]:
@@ -63,6 +69,11 @@ class Player(pygame.sprite.Sprite):
 
         if pressed_keys[K_UP]:
             self.jump = True
+            self.jumpPress += 1
+            if self.jumpPress < 2:
+                self.jumpCount = 0
+            if self.jumpPress == 2:
+                self.jumpPress = 0
             
     def getPos(self):
         return (self.x, self.y)
