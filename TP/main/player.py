@@ -35,37 +35,60 @@ class Player(pygame.sprite.Sprite):
         self.jumpCount = 0
         self.jumpd = 14
         self.jumpPress = 0
+        self.jumpAdded = 0
+
+        self.moveLeft = False
+        self.moveRight = False
+
+        self.newPlatform = False
 
     def timerFired(self):
-        if self.jump == True:
-            if self.jumpd == 14:
-                self.y -= self.jumpd
-            else:
-                while self.y < self.ground:
-                    self.y -= self.jumpd
-            
-            self.jumpCount += 1
-            if self.jumpCount == 4:
-                self.jumpd *= -1
+        print("I'm here in player timer fired")
+        if self.moveLeft == True:
+            print("moving left")
+            self.x -= 16
+            self.surf = pygame.image.load('modules/AKplayerLeft.png')
+        if self.moveRight == True:
+            print("moving right")
+            self.x += 16
+            self.surf = pygame.image.load('modules/AKplayer.png')
 
-            if self.jumpCount == 8:
-                self.jump = False
-                self.jumpd *= -1
-                self.jumpCount = 0
+        if self.level == 2:
+            if self.x > 700:
+                self.x = 100
+            if self.x < 100:
+                self.x = 700
+
+        if self.level == 1:
+            if self.jump == True:
+                if self.jumpCount < 4:
+                    self.y -= self.jumpd
+                    #self.jumpAdded += self.jumpd
+                else:
+                    if self.newPlatform == False:
+                        #self.jumpAdded += self.y
+                        if self.y < self.ground:
+                            self.y += self.jumpd
+
+                        if self.y >= self.ground:
+                            self.jumpCount = 0
+                            self.jump = False
+                            self.y = self.ground
+
+                # while self.y < self.ground:
+                #     self.y -= self.jumpd
+            
+                self.jumpCount += 1
+            # # if self.jumpCount == 4:
+            # #     self.jumpd *= -1
+
+            # if self.jumpCount == 8:
+            #     self.jump = False
+            #     # self.jumpd *= -1
+            #     self.jumpCount = 0
+            #     self.y = self.ground
 
     def update(self, pressed_keys):
-        dist = 16
-        
-        if self.x > 150:
-            if pressed_keys[K_LEFT]:
-                self.surf = pygame.image.load('modules/AKplayerLeft.png')
-                self.x -= dist
-                self.d = -1
-        if self.x < 1600:
-            if pressed_keys[K_RIGHT]:
-                self.surf = pygame.image.load('modules/AKplayer.png')
-                self.x += dist
-                self.d = 1
 
         if pressed_keys[K_UP]:
             self.jump = True
@@ -82,16 +105,18 @@ class Player(pygame.sprite.Sprite):
         self.x = x
         self.y = y
 
-        # self.lives -= 1 if collide with enemy
-        
+    def platformCollide(self, x, y, w):
+
+        if self.x >= x + w and self.x <= x:
+            if self.y >= y and self.y <= y+50:
+                return True
+        return False
 
     def draw(self, surface):
         surface.blit(self.surf, (self.x, self.y))
 
     def enemyCollided(self, enemyX, enemyWidth):
-        #if self.x >= enemyX - enemyWidth//2 and self.x <= enemyX + enemyWidth//2:
-        #print("enemyX: ", enemyX)
-        #print("self.x: ", self.x)
+
         if self.x >= enemyX and self.x <= enemyX + 100:
             return True
         else:
@@ -126,7 +151,7 @@ class Ghost(pygame.sprite.Sprite):
 
 
 class Punches(pygame.sprite.Sprite):
-    speed = 25
+    speed = 35
     time = 50 * 4 
     size = 10
 

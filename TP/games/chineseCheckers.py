@@ -132,7 +132,8 @@ def moves(board, pos):
     urow = row - 1
     lcol = col - 1
     rcol = col + 1
-
+    print("getting moves")
+    possibleMoves = []
     if len(board[row])%2 != 0:
         possibleMoves = [(drow, lcol),(drow, col),
                             (row, lcol), (row, rcol),
@@ -141,11 +142,12 @@ def moves(board, pos):
         possibleMoves = [(drow, col), (drow, rcol),
                             (row, lcol), (row, rcol),
                                 (urow, col), (drow, rcol)]
-
+    print("possible moves: ", possibleMoves)
     for move in possibleMoves:
         if onBoard(board, move[0], move[1]):
             moves += [move]
-
+    print("moves: ", moves)
+    
     return moves
 
 def isFull(board, pos):
@@ -174,7 +176,11 @@ def legalBonusMoves(board, pos, moves, legalMoves = None):
 
 
 def allMoves(board, pos):
+    moves = None
+
     board = getBoard(board)
+    print("board: ", board)
+    print("moves(board, pos): ",moves(board, pos))
     moves = moves(board, pos)
     moves += legalBonusMoves(board, pos, moves)
     return moves

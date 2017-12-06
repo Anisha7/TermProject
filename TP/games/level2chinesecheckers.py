@@ -172,23 +172,38 @@ class ChineseCheckers(object):
         #print(self.circlePoints2)
 
 
-        self.selected = (0,5)
+        self.selected = (0,6)
+        self.chosen = None # when selected is entered
+        self.moves = None # all moves for the chosen
         self.playerTurn = True
 
     def update(self, pressed_keys):
         print("UPDATING")
         if self.playerTurn == True:
             # tracking player navigation on board
+            i = self.selected[0]
+            j = self.selected[1]
             if pressed_keys[K_LEFT]:
-                self.selected[1] -= 1
+                j -= 1
             if pressed_keys[K_RIGHT]:
-                self.selected[1] += 1
+                j += 1
             if pressed_keys[K_DOWN]:
-                self.selected[0] -= 1
+                i += 1
             if pressed_keys[K_UP]:
-                self.selected[0] += 1
+                i -= 1
 
-        print(self.selected)
+            if self.board2[i][j] != 0:
+                self.selected = (i,j)
+
+            # Selecting a piece for moves
+            if pressed_keys[K_RETURN]:
+                self.chosen = self.selected
+                self.moves = allMoves(self.board2, self.chosen)
+                print(self.moves)
+
+
+
+        print("updated",self.selected)
         
 
     def startScreen(self, surface):
@@ -229,6 +244,7 @@ class ChineseCheckers(object):
         for i in range(len(self.circlePoints2)):
             for j in range(len(self.circlePoints2[i])):
                 point = self.circlePoints2[i][j]
+                #print(self.selected)
                 if point != 0:
                     color = (124,70,34)
                     if self.board2[i][j] == -1:
@@ -245,6 +261,9 @@ class ChineseCheckers(object):
                         color = (226,201,205)
                     if self.board2[i][j] == 6:
                         color = (67,130,114)
+
+                    if (i,j) == self.selected:
+                        color = (255, 0, 255)
 
                     pygame.draw.circle(surface, color, point, self.r)
         # for row in range(len(self.board2)):

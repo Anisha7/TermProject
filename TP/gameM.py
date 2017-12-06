@@ -94,20 +94,27 @@ class Game(PygameGame):
         self.player = Player(self.width, self.height, self.playerLives, self.score, "Lonely")
         self.me = self.player
         self.otherStrangers = dict()
+        self.ground = self.player.y
 
         # multiplayer
         
         self.server = server
         self.serverMsg = serverMsg
+
         #self.player = player
 
         self.punches = pygame.sprite.Group()
 
         # castles
+        self.inMiniGame = False
+
         self.castle = Castle(200, self.player.y - 235, self.player.score, 1, self.level)
         self.inMiniGame1 = False
         self.castle2 = Castle(900, self.player.y - 235, self.player.score, 2, self.level)
         self.inMiniGame2 = False
+
+        self.castle3 = Castle(400, self.mapHeight + 500, self.player.score, 1, 2)
+        self.inMiniGame3 = False
 
         # level 2
 
@@ -149,57 +156,36 @@ class Game(PygameGame):
         # platforms
         # level1
         self.platforms1 = pygame.sprite.Group()
-        x = 400
-        y = self.player.y + 20
+        x = 500
+        y = self.player.y - 30
 
         for i in range(6):
             platform = Platform(x,y,self.mapWidth, self.mapHeight, 1)
-            x = random.randint(400, self.mapWidth)
-            y = random.randint(self.player.y + 12, self.player.y + 24)
+            x = random.randint(500, 1700)
+            y = random.randint(self.player.y - 50, self.player.y - 30)
 
-            self.platforms1.add(platform)
+            if x <= 900 or x >= 1400:
+                self.platforms1.add(platform)
         
         # level2
         self.platforms2 = pygame.sprite.Group()
 
         y = 30
         x = 0
-        while y < self.mapHeight:
+        while y < self.mapHeight + 1200:
             platform = Platform(x,y,self.mapHeight + 100, self.mapWidth, 2)
-            y += 20
+            y += 50
             x = random.randint(0,self.width)
 
             self.platforms2.add(platform)
 
-
-
-    def update(self, pressed_keys, keyCode, modifier):
-
-
+    def levelOneUpdate(self, pressed_keys, keyCode, modifier):
         # scrolling when player reaches end of screen
-        mapXc = -14
+
+        
         if self.inMiniGame1 == False and self.inMiniGame2 == False:
             
-            if self.playerKilled == False:
-                # level one scrolling
-                if self.level == 1:
-                    if pressed_keys[K_LEFT]:
-                        self.mapX -= mapXc
-                    #if self.player.x > 250:
-                    if pressed_keys[K_RIGHT]:
-                        self.mapX += mapXc
-
-                if self.level == 2:
-                    if pressed_keys[K_UP]:
-                        self.mapX -= mapXc
-                    #if self.player.x > 250:
-                    if pressed_keys[K_DOWN]:
-                        self.mapX += mapXc
-
-                # add punches, for player attack
-                if pressed_keys[K_SPACE]:
-                    self.punches.add(Punches(self.player.x, self.player.y + 50, self.player.d))
-
+            
 
             enemynum = len(self.enemies)
             # remove enemy if attacked
@@ -222,12 +208,7 @@ class Game(PygameGame):
                     
             
 
-            # check coin collide
-            for coin in self.coins:
-                if self.player.coinCollided(coin.x):
-                    self.player.score += 1
-                    self.score = self.player.score
-                    coin.remove()
+            
 
 
             # entering castle
@@ -244,7 +225,8 @@ class Game(PygameGame):
                     #print("in castle 2")
                     #self.castle2.inGame(self.mainMap)
                     self.inMiniGame2 = True
-               
+
+            
 
         # exiting castle
         if self.inMiniGame1 == True:
@@ -260,8 +242,67 @@ class Game(PygameGame):
                 self.inMiniGame2 = False
                 self.castle2.exitCastle()
 
+    def levelTwoUpdate(self, pressed_keys, keyCode, modifier):
+        if self.inMiniGame3 == False:
+            if self.castle3.castleCollide(self.player.x):
+                if pressed_keys[K_RETURN]:
+                    self.inMiniGame3 = True
+            mapXc = -14
+            if pressed_keys[K_UP]:
+                self.mapX -= mapXc
+            #if self.player.x > 250:
+            if pressed_keys[K_DOWN]:
+                self.mapX += mapXc
+
+    def update(self, pressed_keys, keyCode, modifier):
+
+        if self.player.level == 1:
+            Game.levelOneUpdate(self, pressed_keys, keyCode, modifier)
+
+        if self.player.level == 2:
+            Game.levelTwoUpdate(self, pressed_keys, keyCode, modifier)
         # if collide(self.player, self.castle):
         #     print("collided")
+
+        if self.playerKilled == False:
+            
+            # add punches, for player attack
+            if pressed_keys[K_SPACE]:
+                self.punches.add(Punches(self.player.x, self.player.y + 50, self.player.d))
+
+            # check coin collide
+            for coin in self.coins:
+                if self.player.coinCollided(coin.x):
+                    self.player.score += 1
+                    self.score = self.player.score
+                    coin.remove()
+            # collision with platforms
+            
+            if self.player.level == 1:
+                for platform in self.platforms1:
+
+                    if self.player.platformCollide(platform.x, platform.y, platform.w) == True:
+                        self.player.y = platform.y
+                        self.player.jump = False
+                    if self.player.platformCollide(platform.x, platform.y, platform.w) == False:
+                        self.player.y = self.ground
+
+        # for platform in self.platforms2:
+
+        #     if self.player.platformCollide(platform.x, platform.y, platform.w) == True:
+        #         self.player.y = platform.y
+        #         self.player.jump = False
+            
+        # x = self.player.x
+        # if pygame.sprite.spritecollideany(self.player, self.platforms1, collided = None) != None:
+        #     platform = pygame.sprite.spritecollideany(self.player, self.platforms1, collided = None)
+        #     self.player.x = platform.x
+        #     print("**colided",platform)
+        # else:
+        #     self.player.x = x
+
+        
+        
 
     def keyPressed(self, keyCode, modifier):
         pressed_keys = pygame.key.get_pressed()
@@ -279,7 +320,7 @@ class Game(PygameGame):
             #print(self.playerKilled)
             if self.playerKilled == False:
                 #print("I'm still ALIVE")
-                if self.inMiniGame1 == False and self.inMiniGame2 == False:
+                if self.inMiniGame == False:
                     # update player's position
                     self.player.update(pressed_keys)
                     # send message to server
@@ -292,8 +333,11 @@ class Game(PygameGame):
                     self.castle.update(pressed_keys)
                 if self.inMiniGame2 == True:
                     self.castle2.update(pressed_keys)
+                if self.inMiniGame3 == True:
+                    print("in game class, castle3 update")
+                    self.castle3.update(pressed_keys)
 
-
+        #print(self.isKeyPressed(K_RIGHT))
         ## to return to start screen
         if pressed_keys[K_e]:
             print("exit game")
@@ -302,8 +346,11 @@ class Game(PygameGame):
         #     print("I'm not in a mini game")
         #     if pressed_keys[K_ESCAPE]:
         #         self.startScreen = True
+        
+
     def myTimerFired(self, dt):
         # my player
+        self.player.timerFired()
 
         if self.splash == True:
             self.splashCount += 1
@@ -329,9 +376,12 @@ class Game(PygameGame):
         self.coinTime += 1
 
         if self.coinTime == 20:
-
-            x = random.randint(100, 1400)
-            y = random.randint(self.player.y, self.player.y + 20)
+            if self.player.level == 1:
+                x = random.randint(100, 1400)
+                y = random.randint(self.player.y, self.player.y + 20)
+            if self.player.level == 2:
+                x = random.randint(100,700)
+                y = random.randint(100,1400)
             self.coins.add(Coin(x, y))
         
         if self.coinTime == 40:
@@ -342,10 +392,37 @@ class Game(PygameGame):
             self.coinTime = 0
 
         if self.inMiniGame2 == True:
-            self.castle.timerFired()
+            self.castle2.timerFired()
 
-        self.player.timerFired()
-    
+        
+
+        # print("HELD", self.isKeyPressed(K_RIGHT))
+
+        if self.playerKilled == False:
+            if self.isKeyPressed(K_RIGHT) == True:
+                self.player.moveRight = True
+                if self.player.level == 1:
+                    self.mapX += -10
+            else:
+                self.player.moveRight = False
+
+            if self.isKeyPressed(K_LEFT) == True:
+                self.player.moveLeft = True
+                if self.player.level == 1:
+                    self.mapX -= -10
+            else:
+                self.player.moveLeft = False
+        
+
+        if self.inMiniGame1 == True:
+            self.inMiniGame = True
+        elif self.inMiniGame2 == True:
+            self.inMiniGame = True
+        elif self.inMiniGame3 == True:
+            self.inMiniGame = True
+        else:
+            self.inMiniGame = False
+
     def timerFired(self, dt):
         Game.myTimerFired(self, dt)
         
@@ -502,13 +579,16 @@ class Game(PygameGame):
             self.level = self.player.level
             self.splash = True
             self.mapX = 0
+            self.castle = Castle(200, self.player.y - 235, self.player.score, 1, 2)
+            self.player.x = 400
+            self.player.y = self.mapHeight + 1200
         
         # enemies
 
         self.enemies.draw(self.mainMap)
 
         
-        if self.inMiniGame1 == False or self.inMiniGame2 == False:
+        if self.inMiniGame3 == False:
             # coins
             self.coins.draw(self.mainMap)
             # player 
@@ -531,24 +611,16 @@ class Game(PygameGame):
         # mainMap = pygame.Surface((self.mapWidth, self.mapHeight))
         # self.mainMap = mainMap.convert()
         # self.mainMap.fill(self.blue)
-        screen.blit(self.mainMap2, (0, self.mapX, 800, self.mapX + self.height))
+        screen.blit(self.mainMap2, (0, self.mapX - 1498, 800, self.mapX + self.height - 1498))
+        print((0, self.mapX, 800, self.mapX + self.height))
         #screen.blit(self.mainMap2, (0, self.mapX , 800, self.mapHeight - self.mapX))
 
         surf = pygame.image.load('modules/level1/Ground1.png')
-        surf = pygame.transform.smoothscale(surf, (self.width, self.width//4))
-        self.mainMap2.blit(surf, (0, self.mapHeight - self.width//16))
+        surf = pygame.transform.smoothscale(surf, (800, self.width//4))
+        self.mainMap2.blit(surf, (0, self.mapHeight + 1200))
 
-        #self.platforms2.draw(self.mainMap2)
+        self.platforms2.draw(self.mainMap2)
         
-
-        Game.mainDraw(self, screen)
-
-        # draw circles to test scrolling
-        circle1 = pygame.draw.circle(self.mainMap2, white, (self.mapWidth//2, 1000), 20)
-        circle1 = pygame.draw.circle(self.mainMap2, purple, (self.mapWidth//2, 300), 20)
-        circle1 = pygame.draw.circle(self.mainMap2, blue, (200, 50), 20)
-        
-
         #pygame.draw.rect(self.mainMap2, red, (0, 0, 100, self.mapWidth))
         # left wall
         surf = pygame.image.load('modules/level1/Ground1.png')
@@ -556,15 +628,31 @@ class Game(PygameGame):
         self.mainMap2.blit(surf, (0, 0))
         self.mainMap2.blit(surf, (700, 0))
 
+        self.castle3.draw(self.mainMap2)
 
+        
+        #self.player.draw(self.mainMap2)
 
         #pygame.draw.rect(self.mainMap2, red, (self.mapHeight, 0, self.mapHeight, self.mapWidth))
         #pygame.draw.rect(self.mainMap2, red, (self.mapHeight - 25, 0, self.mapHeight, self.mapWidth))
         ##
         #pygame.display.update()
+        if self.inMiniGame == False:
+            # coins
+            self.coins.draw(self.mainMap2)
+            # player 
+            if self.playerKilled == False:
+                self.player.draw(self.mainMap2)
+                self.punches.draw(self.mainMap2)
+            if self.playerKilled == True:
+                self.playerGhost.draw(screen)
 
-        # make a platforms class, detect collisions wiyh player abd updqte pos accordingly
-        pygame.display.flip()
+            Game.mainDraw(self, screen)
+
+        if self.inMiniGame3 == True:
+            self.castle3.inGame(screen)
+        
+        #pygame.display.flip()
 
     def redrawAll(self, screen):
         # game setup
@@ -590,11 +678,15 @@ class Game(PygameGame):
             for playerName in self.otherStrangers:
                 print("I CAN BE UPDATED")
                 print(self.otherStrangers[playerName])
-                self.otherStrangers[playerName].draw(self.mainMap)
+                if self.otherStrangers[playerName].level == 1:
+                    self.otherStrangers[playerName].draw(self.mainMap)
+                if self.otherStrangers[playerName].level == 2:
+                    self.otherStrangers[playerName].draw(self.mainMap2)
 
-        # self.inMiniGame1 = True
-        # self.castle = Castle(200, self.player.y - 235, self.player.score, 1, 2)
-        # self.castle.inGame(screen)
+        
+        # self.inMiniGame3 = True
+        # # self.castle = Castle(200, self.player.y - 235, self.player.score, 1, 2)
+        # self.castle3.inGame(screen)
                 
 
         pygame.display.flip()
