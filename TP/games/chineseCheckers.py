@@ -86,6 +86,7 @@
 
 #             ]
 
+import copy
 # puts board in form that works for AI
 def getBoard(board):
     for row in board:
@@ -123,8 +124,8 @@ def onBoard(board, row, col=0):
 
     return True
 
-def moves(board, pos):
-    moves = []
+def moves(board, pos, all = False):
+    movesl = []
     row = pos[0]
     col = pos[1]
 
@@ -145,44 +146,108 @@ def moves(board, pos):
     print("possible moves: ", possibleMoves)
     for move in possibleMoves:
         if onBoard(board, move[0], move[1]):
-            moves += [move]
-    print("moves: ", moves)
+            if all == False:
+                if board[move[0]][move[1]] == -1:
+                    movesl += [move]
+            else:
+                movesl += [move]
+    print("moves: ", movesl)
     
-    return moves
+    return movesl
 
 def isFull(board, pos):
     if board[pos[0]][pos[1]] > 0:
         return True
     return False
 
+def posMoves(board, pos):
+    movesl = []
+    row = pos[0]
+    col = pos[1]
+
+    drow = row + 1
+    urow = row - 1
+    lcol = col - 1
+    rcol = col + 1
+    print("getting moves")
+    possibleMoves = []
+    if len(board[row])%2 != 0:
+        possibleMoves = [(drow, lcol),(drow, col),
+                            (row, lcol), (row, rcol),
+                                (urow, col), (urow, lcol)]
+    if len(board[row])%2 == 0:
+        possibleMoves = [(drow, col), (drow, rcol),
+                            (row, lcol), (row, rcol),
+                                (urow, col), (drow, rcol)]
+    print("possible moves: ", possibleMoves)
+    for move in possibleMoves:
+        if onBoard(board, move[0], move[1]):
+            if board[move[0]][move[1]] != 0:
+                movesl += [move]
+    print("moves: ", movesl)
+
+    return movesl
+
+
+def bonusMove(board, pos):
+    # pos is selected pos
+    movesL = moves(board, pos, True)
+    print(movesL)
+    bonuses = []
+    for i in range(len(movesL)):
+        if isFull(board, movesL[i]):
+            print("I'm full: ", movesL[i])
+
+            posMoves = moves(board, movesL[i])
+            # possible moves
+
+            for move in posMoves:
+                if move in movesL:
+                    continue
+                if isFull(board, move):
+                    continue
+                else:
+                    bonuses += [move]
+    print("new bonuses: ", bonuses)
+    return bonuses
+
 
 # before calling the function: moves = moves(board, pos)
-def legalBonusMoves(board, pos, moves, legalMoves = None):
+def legalBonusMoves(board, pos, legalMoves = None, c = 0):
     if legalMoves == None:
         legalMoves = []
 
-    if len(moves) == 0:
+    if len(legalMoves) == 0 and c > 0:
         return legalMoves
 
     else:
-        
-        for move in moves:
-            if isFull(board, move):
-                legalMoves += moves(board, move)
-                newMoves = moves(board, move)
-                for move2 in newMoves:
-                    legalMoves += legalBonusMoves(board, move2, newMoves, legalMoves)
+        posmoves = bonusMove(board, pos)
+
+        for point in posmoves:
+            legalMoves += [point] + legalBonusMoves(board, point, None, 1)
+
         return legalMoves
 
 
-def allMoves(board, pos):
-    moves = None
+
+def bonusMoves(board, pos):
+    
 
     board = getBoard(board)
-    print("board: ", board)
-    print("moves(board, pos): ",moves(board, pos))
-    moves = moves(board, pos)
-    moves += legalBonusMoves(board, pos, moves)
-    return moves
+    moveslistcopy = None
+    moveslistcopy = moves(board, pos)
+    bonusList = legalBonusMoves(board, pos, moveslistcopy)
+    print("***legalBonusMoves(): ",legalBonusMoves(board, pos, moveslistcopy))
+    print("bonuses: ",bonusList)
+    # print("board: ", board)
+    # print("moves(board, pos): ",moves(board, pos))
+    # moveslist = moves(board, pos)
+    # print("legalBonusMoves(board, pos): ",legalBonusMoves(board, pos, moveslist))
+    # moveslistcopy = copy.deepcopy(moveslist)
+    # bonusmoves = legalBonusMoves(board, pos, moveslistcopy)
+    # moveslist += legalBonusMoves(board, pos, moveslistcopy)
+
+    # allmovesList += bonusmoves
+    return bonusList
 
 

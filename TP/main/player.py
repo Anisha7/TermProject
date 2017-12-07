@@ -43,15 +43,17 @@ class Player(pygame.sprite.Sprite):
         self.newPlatform = False
 
     def timerFired(self):
-        print("I'm here in player timer fired")
+        #print("I'm here in player timer fired")
         if self.moveLeft == True:
-            print("moving left")
+            #print("moving left")
             self.x -= 16
             self.surf = pygame.image.load('modules/AKplayerLeft.png')
+            self.d = -1
         if self.moveRight == True:
-            print("moving right")
+            #print("moving right")
             self.x += 16
             self.surf = pygame.image.load('modules/AKplayer.png')
+            self.d = 1
 
         if self.level == 2:
             if self.x > 700:
@@ -183,16 +185,18 @@ class Punches(pygame.sprite.Sprite):
         # direction
         self.d = d
         if self.d > 0:
-            self.vx = 8
+            self.vx = 15
             self.surf = pygame.image.load('modules/boomerang.png')
             self.image = self.surf
         else:
-            self.vx = -8
+            self.vx = -15
             self.surf = pygame.image.load('modules/boomerangLeft.png')
             self.image = self.surf
 
         # distance travelled
         self.dist = 0
+
+
 
     def draw(self, surface):
         surface.blit(self.surf, (self.x, self.y))

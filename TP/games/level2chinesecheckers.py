@@ -8,6 +8,7 @@ from main.player import *
 from games.chineseCheckers import *
 import random
 import copy
+import math
 
 #############################################################################
 
@@ -53,8 +54,8 @@ class ChineseCheckers(object):
                                     ((xc + r*3 - 3), (yc-(d*2)) + r*9)],
                                 [((xc - r*4), (yc-(d*2)) + r*12),((xc - r*2 + 5), (yc-(d*2)) + r*12),
                                     ((xc + r*2 - 5), (yc-(d*2)) + r*12),((xc + r*4), (yc-(d*2)) + r*12)], # triangle 1 ends
-                                [((xc-d//2) - r*2, (yc-d) + r+2), ((xc-d//2) - r*5, (yc-d) + r+2), 
-                                    ((xc-d//2) - r*8, (yc-d) + r+2), ((xc-d//2) - r*11, (yc-d) + r+2), #triangle6
+                                [((xc-d//2) - r*11, (yc-d) + r+2), ((xc-d//2) - r*8, (yc-d) + r+2),
+                                    ((xc-d//2) - r*5, (yc-d) + r+2), ((xc-d//2) - r*2, (yc-d) + r+2), #triangle6
                                     ((xc-d//2) + r, (yc-d) + r+2), ((xc-d//2) + r*4, (yc-d) + r+2), 
                                     ((xc-d//2) + r*7, (yc-d) + r+2), ((xc-d//2) + r*10, (yc-d) + r+2), 
                                     ((xc-d//2) + r*13, (yc-d) + r+2), # hexagon 1st line
@@ -175,7 +176,9 @@ class ChineseCheckers(object):
         self.selected = (0,6)
         self.chosen = None # when selected is entered
         self.moves = None # all moves for the chosen
+        self.bonusmoves = None
         self.playerTurn = True
+        self.turn = 1
 
     def update(self, pressed_keys):
         print("UPDATING")
@@ -196,12 +199,109 @@ class ChineseCheckers(object):
                 self.selected = (i,j)
 
             # Selecting a piece for moves
-            if pressed_keys[K_RETURN]:
-                self.chosen = self.selected
-                self.moves = allMoves(self.board2, self.chosen)
-                print(self.moves)
+            if self.chosen == None:
+                if pressed_keys[K_RETURN]:
+                    if self.board2[self.selected[0]][self.selected[1]] == 1:
+                        self.chosen = self.selected
+                        self.moves = moves(self.board2, self.chosen)
+                        #self.bonusmoves = bonusMove(self.board2, self.chosen)
+                        self.bonusmoves = legalBonusMoves(self.board2, self.chosen)
+                    #self.bonusmoves = bonusMoves(self.board2, self.chosen)
+                    #allMoves(self.board2, self.chosen)
+                    print("moves", self.moves)
+                    print("bonusmoves", self.bonusmoves)
+                    print("legal bonus moves: ",legalBonusMoves(self.board2, self.chosen))
+            else:
+                if pressed_keys[K_RETURN]:
+                    if self.selected == self.chosen:
+                        self.chosen = None
+                        self.moves = None
+                        self.bonusmoves = None
+                    elif (self.selected in self.moves):
+                        self.board2[self.selected[0]][self.selected[1]] = 1
+                        self.board2[self.chosen[0]][self.chosen[1]] = -1
+                        self.chosen = None
+                        self.moves = None
+                        self.bonusmoves = None
+                        self.turn += 1
+                        self.playerTurn = False
+                    elif (self.selected in self.bonusmoves):
+                        self.board2[self.selected[0]][self.selected[1]] = 1
+                        self.board2[self.chosen[0]][self.chosen[1]] = -1
+                        self.chosen = None
+                        self.moves = None
+                        self.bonusmoves = None
+                        self.turn += 1
+                        self.playerTurn = False
+                        # make move at self.selected
 
+            if self.playerTurn == False:
 
+                while self.turn <=6:
+                    piecePos = []
+                    for i in range(len(self.board2) - 1):
+                        for j in range(len(self.board2[i]) - 1):
+                            if self.board2[i][j]==self.turn:
+                                piecePos += [(i,j)]
+
+                    # make bonus move
+                    piece = None
+                    movepiece = None
+                    l = 0 # length of move
+                    for piece in piecePos:
+                        bonusmoves = bonusMove(self.board2, piece)
+                        print("bonuses: ", bonusmoves)
+                        
+                        if len(bonusmoves) <= 0:
+                            continue
+
+                        for bonusmovep in bonusmoves:
+                            row = bonusmovep[0]
+                            col = bonusmovep[1]
+                            dist = int(math.sqrt(((piece[0]-row)**2) + ((piece[1]-col)**2)))
+                            if dist > l:
+                                l = dist
+                                movepiece = bonusmovep
+                                piece = piece
+
+                    print("piece: ", piece)
+                    print("move: ", movepiece)
+
+                    if piece != None and movepiece != None:
+                        self.board2[piece[0]][piece[1]] = -1
+                        self.board2[movepiece[0]][movepiece[1]] = self.turn
+                        self.turn += 1
+
+                    # if no bonus moves
+                    else:
+
+                        # pick random piece
+                        i = random.randint(0, len(piecePos)-1)
+                        piece = piecePos[i]
+                        movepiece = None
+
+                        normalmoves = moves(self.board2, piece)
+                        # if no moves for the random piece
+                        while normalmoves == None or len(normalmoves) < 1:
+                            i = random.randint(0, len(piecePos)-1)
+                            piece = piecePos[i]
+
+                            normalmoves = moves(self.board2, piece)
+
+                        if len(normalmoves) <= 1:
+                            movepiece = normalmoves[0]
+                        else:
+                            j = random.randint(0, len(normalmoves)-1)
+                            movepiece = normalmoves[j]
+
+                        if movepiece != None:
+                            self.board2[piece[0]][piece[1]] = -1
+                            self.board2[movepiece[0]][movepiece[1]] = self.turn
+                        else:
+                            print("NO MOVE??")
+
+                self.turn = 1
+                self.playerTurn = True
 
         print("updated",self.selected)
         
@@ -218,28 +318,6 @@ class ChineseCheckers(object):
         pygame.draw.polygon(surface, (247,225,17), self.t4)
         pygame.draw.polygon(surface, (0,0,0), self.t5)
         pygame.draw.polygon(surface, (15,69,147), self.t6)
-
-        # for i in range(len(self.circlePoints)):
-        #     for j in range(len(self.circlePoints[i])):
-        #         point = self.circlePoints[i][j]
-        #         color = (124,70,34)
-        #         if self.board[i][j] == -1:
-        #             color = (124,70,34)
-        #         if self.board[i][j] == 1:
-        #             color = (231,166,0)
-        #         if self.board[i][j] == 2:
-        #             color = (71,68,61)
-        #         if self.board[i][j] == 3:
-        #             color = (49,185,244)
-        #         if self.board[i][j] == 4:
-        #             color = (139,2,16)
-        #         if self.board[i][j] == 5:
-        #             color = (226,201,205)
-        #         if self.board[i][j] == 6:
-        #             color = (67,130,114)
-
-        #         pygame.draw.circle(surface, color, point, self.r)
-
 
         for i in range(len(self.circlePoints2)):
             for j in range(len(self.circlePoints2[i])):
@@ -262,47 +340,25 @@ class ChineseCheckers(object):
                     if self.board2[i][j] == 6:
                         color = (67,130,114)
 
+                    
+                    if self.moves != None:
+                        for move in self.moves:
+                            if (i,j) == move:
+                                color = (164, 205, 57)
+                                
+                    if self.bonusmoves != None:
+                        for move in self.bonusmoves:
+                            if (i,j) == move:
+                                color = (164, 205, 57)
+
                     if (i,j) == self.selected:
                         color = (255, 0, 255)
+                    if (i,j) == self.chosen:
+                        color = (104, 13, 163)
+                        # choose chosen color
 
                     pygame.draw.circle(surface, color, point, self.r)
-        # for row in range(len(self.board2)):
-        #     for col in range(len(self.board2[row])):
-        #         for i in range(len(self.circlePoints)):
-        #             for j in range(len(self.circlePoints[i])):
-        #                 #col2 = 0
-                
-        #                 if self.board2[row][col] != 0:
-
-        #                     point = self.circlePoints[i][j]
-        #                     color = (124,70,34)
-
-        #                     if self.board2[row][col] == -1:
-        #                         color = (124,70,34)
-        #                     if self.board2[row][col] == 1:
-        #                         color = (231,166,0)
-        #                     if self.board2[row][col] == 2:
-        #                         color = (71,68,61)
-        #                     if self.board2[row][col] == 3:
-        #                         color = (49,185,244)
-        #                     if self.board2[row][col] == 4:
-        #                         color = (139,2,16)
-        #                     if self.board2[row][col] == 5:
-        #                         color = (226,201,205)
-        #                     if self.board2[row][col] == 6:
-        #                         color = (67,130,114)
-
-        #                     pygame.draw.circle(surface, color, point, self.r)
-        #                     # col2 +=1
-
-
-        # for pointList in self.circlePoints:
-        #     for point in pointList:
-        #         color = (124,70,34)
-
-                # pygame.draw.circle(surface, color, point, self.r)
-
-
+        
 
     def endScreen(self, surface):
         pass

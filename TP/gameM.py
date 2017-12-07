@@ -94,6 +94,7 @@ class Game(PygameGame):
         self.player = Player(self.width, self.height, self.playerLives, self.score, "Lonely")
         self.me = self.player
         self.otherStrangers = dict()
+        self.others = []
         self.ground = self.player.y
 
         # multiplayer
@@ -113,7 +114,7 @@ class Game(PygameGame):
         self.castle2 = Castle(900, self.player.y - 235, self.player.score, 2, self.level)
         self.inMiniGame2 = False
 
-        self.castle3 = Castle(400, self.mapHeight + 500, self.player.score, 1, 2)
+        self.castle3 = Castle(400, self.mapHeight + 700, self.player.score, 1, 2)
         self.inMiniGame3 = False
 
         # level 2
@@ -205,11 +206,11 @@ class Game(PygameGame):
                     self.player = Player(self.width, self.height, self.playerLives, self.score, self.player.PID)
                     
                     self.playerKilled = True
-                    
-            
+                    diff = random.randint(400, 800)
+                    num = 350 + diff
 
-            
-
+                    self.enemies.add(Enemy(num + diff, self.player.y))
+          
 
             # entering castle
             if self.castle.castleCollide(self.player.x):
@@ -241,6 +242,12 @@ class Game(PygameGame):
                 #self.castle.exitCastle()
                 self.inMiniGame2 = False
                 self.castle2.exitCastle()
+
+        if self.inMiniGame3 == True:
+            if pressed_keys[K_ESCAPE]:
+                #self.castle.exitCastle()
+                self.inMiniGame3 = False
+                self.castle3.exitCastle()
 
     def levelTwoUpdate(self, pressed_keys, keyCode, modifier):
         if self.inMiniGame3 == False:
@@ -286,6 +293,7 @@ class Game(PygameGame):
                         self.player.jump = False
                     if self.player.platformCollide(platform.x, platform.y, platform.w) == False:
                         self.player.y = self.ground
+
 
         # for platform in self.platforms2:
 
@@ -438,18 +446,25 @@ class Game(PygameGame):
                 if (command == "myIDis"):
                     myPID = msg[1]
                     self.me.changePID(myPID)
+                    print("other strangers in 1:", self.otherStrangers)
 
                 if (command == "newPlayer"):
                     print("adding new player to other strangers")
                     newPID = msg[1]
                     self.otherStrangers[newPID] = Player(self.width, self.height, 3, 0, newPID)
-                    print("other strangers:", self.otherStrangers)
+                    print("other strangers in 2:", self.otherStrangers)
+                    self.others += [Player(self.width, self.height, 3, 0, newPID)]
 
                 if (command == "playerMoved"):
                     PID = msg[1]
                     x = int(msg[2])
                     y = int(msg[3])
                     self.otherStrangers[PID].move(x, y)
+                    print("other strangers in 3:", self.otherStrangers)
+
+                    for player in self.others:
+                        if player.PID == PID:
+                            player.move(x,y)
 
             except Exception as error:
                 print(self.otherStrangers)
@@ -466,6 +481,21 @@ class Game(PygameGame):
 
         surf =  pygame.image.load('modules/AlexKiddStartScreen.png')
         surface.blit(surf, (0, 0))
+
+    def gameOverScreen(self, surface):
+        myfont = pygame.font.SysFont('Comic Sans MS', 30)
+
+        surf =  pygame.image.load('modules/gameOver.png')
+        surface.blit(surf, (0, 0))
+
+        text = "score: %d"%(self.player.score)
+        textsurf = myfont.render(text, False, (0, 0, 0))
+        surface.blit(textsurf,(100, self.height//2))
+
+        text = "level reached: %d"%(self.player.level)
+        textsurf = myfont.render(text, False, (0, 0, 0))
+        surface.blit(textsurf,(100, self.height//2 + 40))
+
 
     def mainDraw(self, screen):
 
@@ -612,7 +642,7 @@ class Game(PygameGame):
         # self.mainMap = mainMap.convert()
         # self.mainMap.fill(self.blue)
         screen.blit(self.mainMap2, (0, self.mapX - 1498, 800, self.mapX + self.height - 1498))
-        print((0, self.mapX, 800, self.mapX + self.height))
+        #print((0, self.mapX, 800, self.mapX + self.height))
         #screen.blit(self.mainMap2, (0, self.mapX , 800, self.mapHeight - self.mapX))
 
         surf = pygame.image.load('modules/level1/Ground1.png')
@@ -662,6 +692,9 @@ class Game(PygameGame):
             Game.init(self)
             Game.startScreen(self, screen)
 
+        elif self.player.lives <= 0:
+            Game.gameOverScreen(self, screen)
+
         else:
             if self.splash == True:
                 Game.levelSplashScreen(self, screen)
@@ -675,6 +708,7 @@ class Game(PygameGame):
                     Game.levelTwoDraw(self, screen)
         
             # draw other players
+            print("in redrawall", self.otherStrangers)
             for playerName in self.otherStrangers:
                 print("I CAN BE UPDATED")
                 print(self.otherStrangers[playerName])
@@ -683,7 +717,9 @@ class Game(PygameGame):
                 if self.otherStrangers[playerName].level == 2:
                     self.otherStrangers[playerName].draw(self.mainMap2)
 
-        
+            print(self.others)
+            for player in self.others:
+                player.draw(self.mainMap)
         # self.inMiniGame3 = True
         # # self.castle = Castle(200, self.player.y - 235, self.player.score, 1, 2)
         # self.castle3.inGame(screen)
