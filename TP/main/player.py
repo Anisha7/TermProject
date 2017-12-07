@@ -33,14 +33,17 @@ class Player(pygame.sprite.Sprite):
         # jumping
         self.jump = False
         self.jumpCount = 0
-        self.jumpd = 14
+        self.jumpd = 20
         self.jumpPress = 0
         self.jumpAdded = 0
 
         self.moveLeft = False
         self.moveRight = False
+        self.moveUp = False
+        self.moveDown = False
 
         self.newPlatform = False
+
 
     def timerFired(self):
         #print("I'm here in player timer fired")
@@ -54,6 +57,12 @@ class Player(pygame.sprite.Sprite):
             self.x += 16
             self.surf = pygame.image.load('modules/AKplayer.png')
             self.d = 1
+
+        if self.moveUp == True:
+            self.y -= 14
+
+        if self.moveDown == True:
+            self.y += 14
 
         if self.level == 2:
             if self.x > 700:
@@ -81,24 +90,17 @@ class Player(pygame.sprite.Sprite):
                 #     self.y -= self.jumpd
             
                 self.jumpCount += 1
-            # # if self.jumpCount == 4:
-            # #     self.jumpd *= -1
 
-            # if self.jumpCount == 8:
-            #     self.jump = False
-            #     # self.jumpd *= -1
-            #     self.jumpCount = 0
-            #     self.y = self.ground
 
     def update(self, pressed_keys):
-
-        if pressed_keys[K_UP]:
-            self.jump = True
-            self.jumpPress += 1
-            if self.jumpPress < 2:
-                self.jumpCount = 0
-            if self.jumpPress == 2:
-                self.jumpPress = 0
+        if self.level == 1:
+            if pressed_keys[K_UP]:
+                self.jump = True
+                self.jumpPress += 1
+                if self.jumpPress < 2:
+                    self.jumpCount = 0
+                if self.jumpPress == 2:
+                    self.jumpPress = 0
             
     def getPos(self):
         return (self.x, self.y)
@@ -109,15 +111,20 @@ class Player(pygame.sprite.Sprite):
 
     def platformCollide(self, x, y, w):
 
-        if self.x >= x + w and self.x <= x:
-            if self.y >= y and self.y <= y+50:
+        if self.x >= x + w*2 and self.x <= x - w*2:
+            # if self.jump == True:
+            #     self.y = y
+            if self.y >= y-20 and self.y <= y+50:
                 return True
         return False
 
     def draw(self, surface):
         surface.blit(self.surf, (self.x, self.y))
 
-    def enemyCollided(self, enemyX, enemyWidth):
+    def enemyCollided(self, enemyX, enemyWidth, enemyy):
+
+        if self.y <= enemyy-5 and self.y>= enemyy+5:
+            return False
 
         if self.x >= enemyX and self.x <= enemyX + 100:
             return True

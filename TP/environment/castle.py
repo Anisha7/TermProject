@@ -20,7 +20,7 @@ class Castle(pygame.sprite.Sprite):
         self.game = game # tracks which mini game
         self.level = level
 
-        self.surf = pygame.image.load('modules/castle1.png')
+        self.surf = pygame.image.load('modules/castle1_1.png')
         self.rect = self.surf.get_rect
         self.surf = pygame.transform.smoothscale(self.surf, (400,400))
 
@@ -59,7 +59,7 @@ class Castle(pygame.sprite.Sprite):
 
     def castleCollide(self, playerx):
 
-        if playerx >= self.x and playerx <= self.x + 200:
+        if playerx >= self.x and playerx <= self.x + 400:
         #if self.x + 50 >= playerx or self.x - 50 <= playerx:
         #if (abs(self.x - playerx) <= self.x):
             return True

@@ -180,8 +180,34 @@ class ChineseCheckers(object):
         self.playerTurn = True
         self.turn = 1
 
+        self.enemyMoved = dict()
+        self.score = 0
+
+        self.playerWon = False
+
+    def win(self):
+        win = 0
+
+        winPoints = [(-1, 6), (-2, 5), (-2, 6), (-3, 5), (-3, 6), (-3, 7), 
+                        (-4, 4), (-4, 5), (-4, 6), (-4, 7)]
+
+        for point in winPoints:
+            i = point[0]
+            j = point[1]
+
+            if self.board2[i][j] == 1:
+                win += 1
+
+        self.score = win*5
+
+        if win == len(winPoints):
+            self.playerWon = True
+        
     def update(self, pressed_keys):
         print("UPDATING")
+
+        self.win()
+
         if self.playerTurn == True:
             # tracking player navigation on board
             i = self.selected[0]
@@ -260,9 +286,10 @@ class ChineseCheckers(object):
                             col = bonusmovep[1]
                             dist = int(math.sqrt(((piece[0]-row)**2) + ((piece[1]-col)**2)))
                             if dist > l:
-                                l = dist
-                                movepiece = bonusmovep
-                                piece = piece
+                                if piece in self.enemyMoved.keys() and self.enemyMoved[piece] != movepiece:
+                                    l = dist
+                                    movepiece = bonusmovep
+                                    piece = piece
 
                     print("piece: ", piece)
                     print("move: ", movepiece)
@@ -271,6 +298,7 @@ class ChineseCheckers(object):
                         self.board2[piece[0]][piece[1]] = -1
                         self.board2[movepiece[0]][movepiece[1]] = self.turn
                         self.turn += 1
+                        self.enemyMoved[piece] = movepiece
 
                     # if no bonus moves
                     else:
@@ -290,15 +318,27 @@ class ChineseCheckers(object):
 
                         if len(normalmoves) <= 1:
                             movepiece = normalmoves[0]
+                            if piece in self.enemyMoved.keys() and self.enemyMoved[piece] != movepiece:
+                                i = random.randint(0, len(piecePos)-1)
+                                piece = piecePos[i]
+                                normalmoves = moves(self.board2, piece)
+                                movepiece = normalmoves[0]
+
                         else:
+                            
                             j = random.randint(0, len(normalmoves)-1)
                             movepiece = normalmoves[j]
+                            while piece in self.enemyMoved.keys() and self.enemyMoved[piece] == movepiece:
+                                j = random.randint(0, len(normalmoves)-1)
+                                movepiece = normalmoves[j]
 
                         if movepiece != None:
                             self.board2[piece[0]][piece[1]] = -1
                             self.board2[movepiece[0]][movepiece[1]] = self.turn
+                            self.enemyMoved[piece] = movepiece
                         else:
                             print("NO MOVE??")
+
 
                 self.turn = 1
                 self.playerTurn = True
@@ -358,14 +398,27 @@ class ChineseCheckers(object):
                         # choose chosen color
 
                     pygame.draw.circle(surface, color, point, self.r)
+
+
         
 
     def endScreen(self, surface):
-        pass
+        self.surf = pygame.draw.rect(surface, (244,187,144), [0, 0, 800, 500])
+
+        myfont = pygame.font.SysFont('Comic Sans MS', 30)
+        text = "YOU WON"
+        textsurf = myfont.render(text, False, (0, 0, 0))
+        surface.blit(textsurf,(350, 200))
+
+        text = "score: %d"%(self.player.score)
+        textsurf = myfont.render(text, False, (0, 0, 0))
+        surface.blit(textsurf,(350, 300))
 
     def draw(self, surface):
         if self.start == True:
             ChineseCheckers.startScreen(self, surface)
+        elif self.playerWon == True:
+            self.endScreen(surface)
         else:
             ChineseCheckers.gameScreen(self, surface)
             

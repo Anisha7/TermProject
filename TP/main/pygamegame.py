@@ -53,6 +53,7 @@ class PygameGame(object):
         self.fps = fps
         self.title = title
         self.bgColor = (255, 255, 255)
+        self.otherStrangers = dict()
 
         pygame.init()
 
